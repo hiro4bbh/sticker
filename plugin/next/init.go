@@ -1,9 +1,6 @@
 package next
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/hiro4bbh/sticker/sticker-util/common"
 )
 
@@ -34,17 +31,4 @@ var newTrainCommand = func(opts common.Options) TrainCommand {
 
 func NewTrainCommand(opts common.Options) TrainCommand {
 	return newTrainCommand(opts)
-}
-
-func ReadLabelNext(filename string) (*LabelNext, error) {
-	file, err := os.Open(filename)
-	if err != nil {
-		return nil, fmt.Errorf("ReadLabelNext: %s: %s", filename, err)
-	}
-	defer file.Close()
-	var model LabelNext
-	if err := DecodeLabelNext(&model, file); err != nil {
-		return nil, fmt.Errorf("ReadLabelNext: %s: %s", filename, err)
-	}
-	return &model, nil
 }
