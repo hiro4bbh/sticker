@@ -2,6 +2,10 @@
   margin: 16px;
 }
 
+.canvas-container {
+  position: relative;
+}
+
 .row {
   margin-top: 0;
   margin-bottom: 0;
@@ -9,10 +13,6 @@
 
 .axis line, .axis path {
   stroke: #5E5E5E;
-}
-.point {
-  fill: #56C1FF;
-  stroke: #00A2FF;
 }
 .bar {
   fill: #56C1FF;

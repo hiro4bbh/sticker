@@ -22,12 +22,12 @@
           return "UnknownScale<"+scale+">("+title+")";
         }
       }
-      plot2d(container).data(freqCards[type].data)
-                       .xAxisTitle(makeTitle('Rank', freqCards[type].xAxisScale))
-                       .yAxisTitle(makeTitle('Frequency', freqCards[type].yAxisScale))
-                       .xAxisScale(freqCards[type].xAxisScale)
-                       .yAxisScale(freqCards[type].yAxisScale)
-                       .draw('rank', 'freq');
+      plot2d(container, 'canvas').data(freqCards[type].data)
+                                 .xAxisTitle(makeTitle('Rank', freqCards[type].xAxisScale))
+                                 .yAxisTitle(makeTitle('Frequency', freqCards[type].yAxisScale))
+                                 .xAxisScale(freqCards[type].xAxisScale)
+                                 .yAxisScale(freqCards[type].yAxisScale)
+                                 .draw('rank', 'freq');
     }
     function loadFreqCard(type) {
       var filename = type+'Freq.csv';
