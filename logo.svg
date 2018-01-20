@@ -12,5 +12,5 @@
     <circle cx="100" cy="60" r="20" fill="#FFFFFF" />
     <rect width="480" height="120" x="0" y="0" fill="url(#stripe)" />
   </g>
-  <g font-family="LingWai SC" font-size="72"><text x="270" y="85" fill="#000000" text-anchor="middle"><tspan font-weight="100">sticker</tspan></text></g>
+  <g font-family="Chalkboard SE" font-size="72"><text x="270" y="85" fill="#000000" text-anchor="middle"><tspan font-weight="100">sticker</tspan></text></g>
 </svg>
