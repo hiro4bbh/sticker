@@ -13,15 +13,15 @@ import (
 func TestLabelTree(t *testing.T) {
 	tree := &LabelTree{
 		SplitterSet: map[uint64]*sticker.BinaryClassifier{
-			0x1: &sticker.BinaryClassifier{
+			0x1: {
 				Bias:   0.0,
 				Weight: sticker.SparsifyVector([]float32{1.0}),
 			},
 		},
 		LabelFreqSet: map[uint64]sticker.SparseVector{
-			0x1: sticker.SparseVector{0: 1, 1: 2},
-			0x2: sticker.SparseVector{0: 1},
-			0x3: sticker.SparseVector{1: 2},
+			0x1: {0: 1, 1: 2},
+			0x2: {0: 1},
+			0x3: {1: 2},
 		},
 	}
 	goassert.New(t, false).Equal(tree.IsValidLeaf(0x0))
@@ -36,15 +36,15 @@ func TestLabelTree(t *testing.T) {
 func TestLabelTreeClassify_Predict(t *testing.T) {
 	tree := &LabelTree{
 		SplitterSet: map[uint64]*sticker.BinaryClassifier{
-			0x1: &sticker.BinaryClassifier{
+			0x1: {
 				Bias:   0.0,
 				Weight: sticker.SparsifyVector([]float32{1.0}),
 			},
 		},
 		LabelFreqSet: map[uint64]sticker.SparseVector{
-			0x1: sticker.SparseVector{0: 1, 1: 2},
-			0x2: sticker.SparseVector{0: 1},
-			0x3: sticker.SparseVector{1: 2},
+			0x1: {0: 1, 1: 2},
+			0x2: {0: 1},
+			0x3: {1: 2},
 		},
 	}
 	X := sticker.FeatureVectors{
@@ -182,43 +182,43 @@ func TestTrainLabelTree(t *testing.T) {
 func TestLabelForestClassify_Predict(t *testing.T) {
 	forest := &LabelForest{
 		Trees: []*LabelTree{
-			&LabelTree{
+			{
 				SplitterSet: map[uint64]*sticker.BinaryClassifier{
-					0x1: &sticker.BinaryClassifier{
+					0x1: {
 						Bias:   -1.0,
 						Weight: sticker.SparsifyVector([]float32{1.0}),
 					},
 				},
 				LabelFreqSet: map[uint64]sticker.SparseVector{
-					0x1: sticker.SparseVector{0: 1, 1: 2, 9: 2},
-					0x2: sticker.SparseVector{0: 1, 9: 1},
-					0x3: sticker.SparseVector{1: 2, 9: 1},
+					0x1: {0: 1, 1: 2, 9: 2},
+					0x2: {0: 1, 9: 1},
+					0x3: {1: 2, 9: 1},
 				},
 			},
-			&LabelTree{
+			{
 				SplitterSet: map[uint64]*sticker.BinaryClassifier{
-					0x1: &sticker.BinaryClassifier{
+					0x1: {
 						Bias:   0.0,
 						Weight: sticker.SparsifyVector([]float32{1.0}),
 					},
 				},
 				LabelFreqSet: map[uint64]sticker.SparseVector{
-					0x1: sticker.SparseVector{0: 1, 2: 2, 9: 2},
-					0x2: sticker.SparseVector{0: 1, 9: 1},
-					0x3: sticker.SparseVector{2: 2, 9: 1},
+					0x1: {0: 1, 2: 2, 9: 2},
+					0x2: {0: 1, 9: 1},
+					0x3: {2: 2, 9: 1},
 				},
 			},
-			&LabelTree{
+			{
 				SplitterSet: map[uint64]*sticker.BinaryClassifier{
-					0x1: &sticker.BinaryClassifier{
+					0x1: {
 						Bias:   1.0,
 						Weight: sticker.SparsifyVector([]float32{1.0, 1.0}),
 					},
 				},
 				LabelFreqSet: map[uint64]sticker.SparseVector{
-					0x1: sticker.SparseVector{0: 1, 3: 2, 9: 2},
-					0x2: sticker.SparseVector{0: 1, 9: 1},
-					0x3: sticker.SparseVector{3: 2, 9: 1},
+					0x1: {0: 1, 3: 2, 9: 2},
+					0x2: {0: 1, 9: 1},
+					0x3: {3: 2, 9: 1},
 				},
 			},
 		},
@@ -227,10 +227,10 @@ func TestLabelForestClassify_Predict(t *testing.T) {
 		sticker.FeatureVector{sticker.KeyValue32{0, -1.0}}, sticker.FeatureVector{sticker.KeyValue32{0, 0.0}}, sticker.FeatureVector{sticker.KeyValue32{0, 1.0}, sticker.KeyValue32{1, 1.0}},
 	}
 	leafIdsSlice := forest.ClassifyAll(X)
-	goassert.New(t, [][]uint64{[]uint64{0x2, 0x2, 0x2}, []uint64{0x2, 0x2, 0x3}, []uint64{0x2, 0x3, 0x3}}).Equal(leafIdsSlice)
+	goassert.New(t, [][]uint64{{0x2, 0x2, 0x2}, {0x2, 0x2, 0x3}, {0x2, 0x3, 0x3}}).Equal(leafIdsSlice)
 	leafIdsSlice_, weightsSlice := forest.ClassifyAllWithWeight(X)
 	goassert.New(t, leafIdsSlice).Equal(leafIdsSlice_)
-	goassert.New(t, [][]float32{[]float32{1, 1, 1}, []float32{1, 1, 1}, []float32{1, 1, 2}}).Equal(weightsSlice)
+	goassert.New(t, [][]float32{{1, 1, 1}, {1, 1, 1}, {1, 1, 2}}).Equal(weightsSlice)
 	goassert.New(t, sticker.LabelVectors{sticker.LabelVector{}, sticker.LabelVector{}, sticker.LabelVector{}}).Equal(forest.PredictAll(leafIdsSlice, 0))
 	goassert.New(t, sticker.LabelVectors{sticker.LabelVector{0}, sticker.LabelVector{9}, sticker.LabelVector{9}}).Equal(forest.PredictAll(leafIdsSlice, 1))
 	goassert.New(t, sticker.LabelVectors{sticker.LabelVector{0, 9}, sticker.LabelVector{9, 0}, sticker.LabelVector{9, 2}}).Equal(forest.PredictAll(leafIdsSlice, 2))

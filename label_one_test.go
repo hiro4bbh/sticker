@@ -14,23 +14,23 @@ func TestLabelOnePrune(t *testing.T) {
 		Params: NewLabelOneParameters(),
 		Biases: []float32{1.0, 2.0, 3.0},
 		WeightLists: map[uint32]KeyValues32{
-			1: KeyValues32{KeyValue32{2, 1.0}, KeyValue32{3, 2.0}},
-			3: KeyValues32{KeyValue32{1, 1.0}, KeyValue32{3, 2.0}},
+			1: {KeyValue32{2, 1.0}, KeyValue32{3, 2.0}},
+			3: {KeyValue32{1, 1.0}, KeyValue32{3, 2.0}},
 		},
 		Labels: LabelVector{1, 3, 2},
 		Summaries: []map[string]interface{}{
-			map[string]interface{}{}, map[string]interface{}{}, map[string]interface{}{},
+			{}, {}, {},
 		},
 	}
 	model1 := &LabelOne{
 		Params: NewLabelOneParameters(),
 		Biases: []float32{1.0},
 		WeightLists: map[uint32]KeyValues32{
-			3: KeyValues32{KeyValue32{1, 1.0}},
+			3: {KeyValue32{1, 1.0}},
 		},
 		Labels: LabelVector{1},
 		Summaries: []map[string]interface{}{
-			map[string]interface{}{},
+			{},
 		},
 	}
 	goassert.New(t, model1).Equal(model3.Prune(1))

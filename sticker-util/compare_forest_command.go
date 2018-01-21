@@ -89,7 +89,7 @@ func (cmd *CompareForestCommand) Run() error {
 	leafIdsSlice2 := forest2.ClassifyAll(ds.X)
 	opts.Logger.Printf("calculating average total variation between %q and %q ...", opts.LabelForest, cmd.LabelForest)
 	sumTV := float32(0.0)
-	for i, _ := range ds.X {
+	for i := range ds.X {
 		labelFreq1, labelFreq2 := make(sticker.SparseVector), make(sticker.SparseVector)
 		for treeId, leafId := range leafIdsSlice1[i] {
 			labelFreq := forest1.Trees[treeId].LabelFreqSet[leafId]

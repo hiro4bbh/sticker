@@ -16,10 +16,10 @@ type QueuePrioritizedByFloat32Item struct {
 
 // NewQueuePrioritizedByFloat32Item returns a new QueuePrioritizedByFloat32Item.
 func NewQueuePrioritizedByFloat32Item(priority float32, item interface{}) QueuePrioritizedByFloat32Item {
-       return QueuePrioritizedByFloat32Item{
-               priority: priority,
-               item:     item,
-       }
+	return QueuePrioritizedByFloat32Item{
+		priority: priority,
+		item:     item,
+	}
 }
 
 // Item returns item.

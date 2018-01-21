@@ -61,7 +61,7 @@ func TestKeyValues32OrderedByKey(t *testing.T) {
 }
 
 func TestKeyValues32OrderedByValue(t *testing.T) {
-	data := KeyValues32OrderedByValue([]KeyValue32{
+	data := KeyValues32OrderedByValue(KeyValues32{
 		KeyValue32{5, 2.0}, KeyValue32{1, 1.0}, KeyValue32{2, 1.0}, KeyValue32{3, 1.0}, KeyValue32{4, 3.0},
 	})
 	sort.Sort(data)
@@ -115,7 +115,7 @@ func TestDatasetFeatureSubSet(t *testing.T) {
 			LabelVector{0}, LabelVector{0, 1}, LabelVector{0, 2, 9}, LabelVector{10},
 		},
 	}
-	goassert.New(t, subds).Equal(ds.FeatureSubSet(map[uint32]struct{}{0: struct{}{}, 5: struct{}{}, 9: struct{}{}}))
+	goassert.New(t, subds).Equal(ds.FeatureSubSet(map[uint32]struct{}{0: {}, 5: {}, 9: {}}))
 }
 
 func TestDatasetSize(t *testing.T) {
