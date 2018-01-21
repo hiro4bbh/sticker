@@ -57,7 +57,7 @@ func BinaryClassifierTrainer_L1Logistic_PrimalSGD(X FeatureVectors, Y []bool, C,
 	m, gSqSum := make([]float32, d+1), make([]float32, d+1)
 	// perm is the data point index slice for providing the random order at each round.
 	perm := make([]int, n)
-	for i, _ := range perm {
+	for i := range perm {
 		perm[i] = i
 	}
 	// t is the iteration number.

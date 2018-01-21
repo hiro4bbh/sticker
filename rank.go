@@ -46,18 +46,18 @@ func InvertRanks(labelRanks LabelVector) map[uint32]int {
 func RankTopK(labelDist SparseVector, K uint) LabelVector {
 	// When returning more than 1/10-th of the labels, if the number of the labels is the more than 25, then use the sorted labels.
 	if len(labelDist) < 10*int(K) && len(labelDist) > 25 {
-		label_freqs := make(KeyValues32OrderedByValue, 0, len(labelDist))
+		labelFreqs := make(KeyValues32OrderedByValue, 0, len(labelDist))
 		for label, freq := range labelDist {
-			label_freqs = append(label_freqs, KeyValue32{label, freq})
+			labelFreqs = append(labelFreqs, KeyValue32{label, freq})
 		}
-		sort.Sort(sort.Reverse(label_freqs))
+		sort.Sort(sort.Reverse(labelFreqs))
 		K_ := K
-		if K_ > uint(len(label_freqs)) {
-			K_ = uint(len(label_freqs))
+		if K_ > uint(len(labelFreqs)) {
+			K_ = uint(len(labelFreqs))
 		}
 		y := make(LabelVector, K)
 		for i := 0; i < int(K_); i++ {
-			y[i] = label_freqs[i].Key
+			y[i] = labelFreqs[i].Key
 		}
 		for i := int(K_); i < len(y); i++ {
 			y[i] = ^uint32(0)
@@ -117,7 +117,7 @@ func ReportMaxPrecision(Y LabelVectors, K uint) []float32 {
 func ReportNDCG(Y LabelVectors, K uint, YK_ LabelVectors) []float32 {
 	pKs := make([]float32, len(Y))
 	if K == 0 {
-		for i, _ := range pKs {
+		for i := range pKs {
 			pKs[i] = NaN32()
 		}
 		return pKs

@@ -17,17 +17,19 @@ type DatasetEntrySubSampler interface {
 // The sub-sampler simply returns the sub-dataset with the given size in order of the given dataset.
 // The seed is used as the sub-sample start index.
 //
-// This implements DatasetEntrySubSampler.
+// This implements interface DatasetEntrySubSampler.
 type DeterministicDatasetEntrySubSampler struct {
 	n uint
 }
 
+// NewDeterministicDatasetEntrySubSampler returns an new DeterministicDatasetEntrySubSampler.
 func NewDeterministicDatasetEntrySubSampler(n uint) DatasetEntrySubSampler {
 	return &DeterministicDatasetEntrySubSampler{
 		n: n,
 	}
 }
 
+// SubSample is for interface DatasetEntrySubSampler.
 func (sampler *DeterministicDatasetEntrySubSampler) SubSample(ds *sticker.Dataset, seed uint) []int {
 	maxSeed := (uint(ds.Size()) + sampler.n - 1) / sampler.n
 	start, end := (seed%maxSeed)*sampler.n, (seed%maxSeed+1)*sampler.n
@@ -45,17 +47,19 @@ func (sampler *DeterministicDatasetEntrySubSampler) SubSample(ds *sticker.Datase
 // This sub-sampler returns the sub-dataset with the given size with replacement from the given dataset.
 // seed is used as the seed of the random number generator.
 //
-// This implements DatasetEntrySubSampler.
+// This implements interface DatasetEntrySubSampler.
 type RandomDatasetEntrySubSampler struct {
 	n uint
 }
 
+// NewRandomDatasetEntrySubSampler returns an new RandomDatasetEntrySubSampler.
 func NewRandomDatasetEntrySubSampler(n uint) DatasetEntrySubSampler {
 	return &RandomDatasetEntrySubSampler{
 		n: n,
 	}
 }
 
+// SubSample is for interface DatasetEntrySubSampler.
 func (sampler *RandomDatasetEntrySubSampler) SubSample(ds *sticker.Dataset, seed uint) []int {
 	rng := rand.New(rand.NewSource(int64(seed)))
 	indices := make([]int, sampler.n)
@@ -78,30 +82,30 @@ func DatasetNoneFeatureSubSampler(ds *sticker.Dataset, seed int64) (*sticker.Dat
 // This function returns no error currently.
 func DatasetSqrtFeatureSubSampler(ds *sticker.Dataset, seed int64) (*sticker.Dataset, error) {
 	// Select sqrt(J) features
-	features := make(map[uint32]struct{})
+	featureSet := make(map[uint32]struct{})
 	for _, xi := range ds.X {
 		for _, xipair := range xi {
-			features[xipair.Key] = struct{}{}
+			featureSet[xipair.Key] = struct{}{}
 		}
 	}
-	maxJ := int(sticker.Sqrt32(float32(len(features))))
-	features_ := make([]int, 0, len(features))
-	for feature, _ := range features {
-		features_ = append(features_, int(feature))
+	maxJ := int(sticker.Sqrt32(float32(len(featureSet))))
+	features := make([]int, 0, len(featureSet))
+	for feature := range featureSet {
+		features = append(features, int(feature))
 	}
 	// Force determinism for reproducibility (the iteration order of golang's map is changed every time!).
-	sort.Ints(features_)
+	sort.Ints(features)
 	rng := rand.New(rand.NewSource(seed))
 	for j := 0; j < maxJ; j++ {
-		j_ := j + rng.Intn(len(features_)-j)
-		features_[j], features_[j_] = features_[j_], features_[j]
+		j_ := j + rng.Intn(len(features)-j)
+		features[j], features[j_] = features[j_], features[j]
 	}
-	features_ = features_[:maxJ]
-	features = make(map[uint32]struct{})
-	for _, feature := range features_ {
-		features[uint32(feature)] = struct{}{}
+	features = features[:maxJ]
+	featureSet = make(map[uint32]struct{})
+	for _, feature := range features {
+		featureSet[uint32(feature)] = struct{}{}
 	}
-	return ds.FeatureSubSet(features), nil
+	return ds.FeatureSubSet(featureSet), nil
 }
 
 // DatasetFeatureSubSampler is the type of feature sub-samplers.
@@ -114,4 +118,5 @@ var DatasetFeatureSubSamplers = map[string]DatasetFeatureSubSampler{
 	"sqrt": DatasetSqrtFeatureSubSampler,
 }
 
+// DefaultDatasetFeatureSubSamplerName is the default DatasetFeatureSubSampler name.
 const DefaultDatasetFeatureSubSamplerName = "none"

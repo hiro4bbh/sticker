@@ -202,7 +202,7 @@ func (model *LabelNearest) FindNearests(x FeatureVector, S uint, beta float32) K
 	return indexSimsTopS
 }
 
-// Predict returns the results for the given entry in entries with the sparse S-nearest neighbourhood.
+// Predict returns the results for the given data entry x with the sparse S-nearest neighbourhood.
 // The returned results are the top-K labels, the label histogram, and the slice of the data entry index and its similarity.
 //
 // alpha is the smoothing parameter for weighting the votes by each neighbour.
@@ -224,7 +224,7 @@ func (model *LabelNearest) Predict(x FeatureVector, K, S uint, alpha, beta float
 	return RankTopK(labelHist, K), labelHist, indexSimsTopS
 }
 
-// PredictAll returns the top-K labels for each entry in entries with the sparse S-nearest neighbourhood.
+// PredictAll returns the top-K labels for each data entry in X with the sparse S-nearest neighbourhood.
 // See Predict for hyper-parameter details.
 func (model *LabelNearest) PredictAll(X FeatureVectors, K, S uint, alpha, beta float32) LabelVectors {
 	Y_ := make(LabelVectors, 0, len(X))

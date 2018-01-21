@@ -196,7 +196,7 @@ func TestReadTextDataset(t *testing.T) {
 func createBenchmarkAvgTotalVariationAmongSparseVectors() SparseVectors {
 	n, m := 50, 20
 	svs := make(SparseVectors, n)
-	for i, _ := range svs {
+	for i := range svs {
 		sv := make(SparseVector, m)
 		for j := 0; j < m; j++ {
 			sv[uint32(j)] = float32(j)

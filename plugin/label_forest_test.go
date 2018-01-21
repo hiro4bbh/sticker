@@ -137,9 +137,9 @@ func TestTrainLabelTree(t *testing.T) {
 	goassert.New(t, true).Equal(tree.IsTerminalLeaf(0x7))
 	goassert.New(t, rightRightLabelFreq).Equal(tree.LabelFreqSet[0x7])
 	// Test encoder/decoder
-	var buf_ bytes.Buffer
-	goassert.New(t, "LabelTree should be encoded with EncodeLabelTree").ExpectError(gob.NewEncoder(&buf_).Encode(tree))
 	var buf bytes.Buffer
+	goassert.New(t, "LabelTree should be encoded with EncodeLabelTree").ExpectError(gob.NewEncoder(&buf).Encode(tree))
+	buf.Reset()
 	goassert.New(t).SucceedWithoutError(EncodeLabelTree(tree, &buf))
 	var decodedTree LabelTree
 	// gob.Decoder.Decode won't call LabelLeaf.GobDecode, because the encoder did not encode LabelLeaf.
@@ -262,9 +262,9 @@ func TestTrainLabelForest(t *testing.T) {
 	goassert.New(t, true).Equal(forest.Trees[1].IsTerminalLeaf(0x1))
 	goassert.New(t, sticker.SparseVector{1: float32(n)}).Equal(forest.Trees[1].LabelFreqSet[0x1])
 	// Test encoder/decoder.
-	var buf_ bytes.Buffer
-	goassert.New(t, "LabelForest should be encoded with EncodeLabelForest").ExpectError(gob.NewEncoder(&buf_).Encode(forest))
 	var buf bytes.Buffer
+	goassert.New(t, "LabelForest should be encoded with EncodeLabelForest").ExpectError(gob.NewEncoder(&buf).Encode(forest))
+	buf.Reset()
 	goassert.New(t).SucceedWithoutError(EncodeLabelForest(forest, &buf))
 	var decodedForest LabelForest
 	// gob.Decoder.Decode won't call LabelForest.GobDecode, because the encoder did not encode LabelForest.

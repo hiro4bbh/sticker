@@ -14,7 +14,7 @@ import (
 	"github.com/hiro4bbh/sticker"
 )
 
-// LabelForestParameters has parameters of label trees.
+// LabelTreeParameters has parameters of label trees.
 type LabelTreeParameters struct {
 	// AssignerName is the used LeftRightAssigner name.
 	AssignerName string
@@ -155,7 +155,6 @@ func TrainLabelTree(ds *sticker.Dataset, params *LabelTreeParameters, seed int64
 			if debug != nil {
 				debug.Printf("TrainLabelTree(seed>>48=%d,leafId=0b%b): BinaryClassifierTrainer(%s): %s", seed>>48, leafId, params.ClassifierTrainerName, err)
 			}
-			err = nil
 		}
 		// Divide the sub-dataset into the left/right one with the trained splitter.
 		tn, fn, fp, tp, Z, predDelta := splitter.ReportPerformance(subds.X, delta)
@@ -215,7 +214,7 @@ func TrainLabelTree(ds *sticker.Dataset, params *LabelTreeParameters, seed int64
 		// Summarize the top-SuppVecK support vectors of the splitter if the splitter is trained by the solver using dual problems.
 		if splitter.Beta != nil {
 			suppVecIdBetas := make(sticker.KeyValues32OrderedByValue, len(subds.X))
-			for i, _ := range subds.X {
+			for i := range subds.X {
 				suppVecIdBetas[i] = sticker.KeyValue32{uint32(i), splitter.Beta[i]}
 			}
 			sort.Sort(sort.Reverse(suppVecIdBetas))
@@ -730,7 +729,7 @@ func (forest *LabelForest) PredictAll(leafIdsSlice [][]uint64, K uint) sticker.L
 	return YK
 }
 
-// PredictAll returns the top-K labels for the given result of ClassifyAllWithWeight.
+// PredictAllWithWeight returns the top-K labels for the given result of ClassifyAllWithWeight.
 func (forest *LabelForest) PredictAllWithWeight(leafIdsSlice [][]uint64, weightsSlice [][]float32, K uint) sticker.LabelVectors {
 	YK := make(sticker.LabelVectors, len(leafIdsSlice))
 	for i, leafIds := range leafIdsSlice {

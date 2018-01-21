@@ -176,7 +176,7 @@ func EncodeLabelOneWithGobEncoder(model *LabelOne, encoder *gob.Encoder) error {
 		return fmt.Errorf("EncodeLabelOne: Biases: %s", err)
 	}
 	features := make([]int, 0, len(model.WeightLists))
-	for feature, _ := range model.WeightLists {
+	for feature := range model.WeightLists {
 		features = append(features, int(feature))
 	}
 	sort.Ints(features)
@@ -219,7 +219,7 @@ func (model *LabelOne) Nrounds() uint {
 	return uint(len(model.Labels))
 }
 
-// Predict returns the top-K predicted labels for the given data point x with the first T rounds.
+// Predict returns the top-K predicted labels for the given data entry x with the first T rounds.
 func (model *LabelOne) Predict(x FeatureVector, K uint, T uint) LabelVector {
 	if T > model.Nrounds() {
 		T = model.Nrounds()
@@ -241,7 +241,7 @@ func (model *LabelOne) Predict(x FeatureVector, K uint, T uint) LabelVector {
 	return RankTopK(y, K)
 }
 
-// PredictAll returns the slice of the top-K predicted labels for each data point in X with the first T rounds.
+// PredictAll returns the slice of the top-K predicted labels for each data entry in X with the first T rounds.
 func (model *LabelOne) PredictAll(X FeatureVectors, K uint, T uint) LabelVectors {
 	Y := make(LabelVectors, 0, len(X))
 	for _, xi := range X {

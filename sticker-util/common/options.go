@@ -27,7 +27,7 @@ type Options interface {
 	SetLabelNext(labelNext string)
 }
 
-// JoinTableNames returns the joined table name from the given table names cut its file extention.
+// JoinTableNames returns the joined table name from the given table names cut its file extension.
 func JoinTableNames(tblnames []string) string {
 	name := ""
 	for i, tblname := range tblnames {
@@ -110,14 +110,16 @@ func ReadLabelOne(filename string) (*sticker.LabelOne, error) {
 }
 
 // OptionFloat32 is the data structure for using float32 in flag.
-// This implements flag.Value.
+// This implements interface flag.Value.
 type OptionFloat32 float32
 
+// String is for interface flag.Value.
 // The default value is "0.0".
 func (opt *OptionFloat32) String() string {
 	return "0.0"
 }
 
+// Set is for interface flag.Value.
 func (opt *OptionFloat32) Set(value string) error {
 	valueF64, err := strconv.ParseFloat(value, 32)
 	if err != nil {
@@ -128,28 +130,32 @@ func (opt *OptionFloat32) Set(value string) error {
 }
 
 // OptionStrings is the data structure for using string slice in flag.
-// This implements flag.Value.
+// This implements interface flag.Value.
 type OptionStrings []string
 
+// String is for interface flag.Value.
 // The default value is "".
 func (opt *OptionStrings) String() string {
 	return ""
 }
 
+// Set is for interface flag.Value.
 func (opt *OptionStrings) Set(value string) error {
 	*opt = append(*opt, value)
 	return nil
 }
 
 // OptionUints is the data structure for using uint slice in flag.
-// This implements flag.Value.
+// This implements interface flag.Value.
 type OptionUints []uint
 
+// String is for interface flag.Value.
 // The default value is "".
 func (opt *OptionUints) String() string {
 	return ""
 }
 
+// Set is for interface flag.Value.
 func (opt *OptionUints) Set(value string) error {
 	valueUint, err := strconv.ParseUint(value, 10, 64)
 	if err != nil {

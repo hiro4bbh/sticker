@@ -82,6 +82,7 @@ func (model *LabelConst) GobEncode() ([]byte, error) {
 	return nil, fmt.Errorf("LabelConst should be encoded with EncodeLabelConst")
 }
 
+// PredictAll returns the top-K labels for each data entry in X.
 func (model *LabelConst) PredictAll(X FeatureVectors, K uint) LabelVectors {
 	predictedLabels := make(LabelVector, K)
 	K_ := K
@@ -93,7 +94,7 @@ func (model *LabelConst) PredictAll(X FeatureVectors, K uint) LabelVectors {
 		predictedLabels[rank] = ^uint32(0)
 	}
 	Y := make(LabelVectors, 0, len(X))
-	for _, _ = range X {
+	for range X {
 		yi := make(LabelVector, K)
 		copy(yi, predictedLabels)
 		Y = append(Y, yi)

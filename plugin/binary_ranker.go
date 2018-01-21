@@ -20,7 +20,7 @@ func BinaryRankerTrainer_L1SVC_PrimalSGD(X sticker.FeatureVectors, pairIndices [
 	Q, A := make([]float32, n), make([]float32, n)
 	// pi holds the permutation indices on all entries.
 	pi := make([]int, n)
-	for i, _ := range pairIndices {
+	for i := range pairIndices {
 		ip, in := pairIndices[i][0], pairIndices[i][1]
 		var xpi, xni sticker.FeatureVector
 		if ip >= 0 {

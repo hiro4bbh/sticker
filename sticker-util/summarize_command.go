@@ -112,7 +112,7 @@ func (cmd *SummarizeCommand) Run() error {
 	opts.Logger.Printf("estimating the least ranks for completely predicting top-%d labels ...", K)
 	labelRankL := sticker.RankTopK(labelFreqs, uint(len(labelFreqs)))
 	labelInvRankL := sticker.InvertRanks(labelRankL)
-	for k, _ := range leastRanksSet {
+	for k := range leastRanksSet {
 		leastRanksSet[k] = []int{}
 	}
 	for _, yi := range ds.Y {
@@ -212,8 +212,8 @@ func (cmd *SummarizeCommand) Run() error {
 			for i, yi := range ds.Y {
 				if len(labelsMap) > 0 {
 					nmatcheds := 0
-					for _, label_ := range yi {
-						if _, ok := labelsMap[label_]; ok {
+					for _, label := range yi {
+						if _, ok := labelsMap[label]; ok {
 							nmatcheds++
 						}
 					}

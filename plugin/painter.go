@@ -8,46 +8,57 @@ import (
 	"github.com/hiro4bbh/sticker"
 )
 
+// QueuePrioritizedByFloat32Item is the item structure of QueuePrioritizedByFloat32.
 type QueuePrioritizedByFloat32Item struct {
 	priority float32
 	item     interface{}
 }
 
+// NewQueuePrioritizedByFloat32Item returns a new QueuePrioritizedByFloat32Item.
 func NewQueuePrioritizedByFloat32Item(priority float32, item interface{}) QueuePrioritizedByFloat32Item {
-	return QueuePrioritizedByFloat32Item{
-		priority: priority,
-		item:     item,
-	}
+       return QueuePrioritizedByFloat32Item{
+               priority: priority,
+               item:     item,
+       }
 }
 
+// Item returns item.
 func (item QueuePrioritizedByFloat32Item) Item() interface{} {
 	return item.item
 }
 
+// Priority returns priority.
 func (item QueuePrioritizedByFloat32Item) Priority() float32 {
 	return item.priority
 }
 
+// QueuePrioritizedByFloat32 is the queue prioritized by float32.
+// This implements interface heap.Interface.
 type QueuePrioritizedByFloat32 []QueuePrioritizedByFloat32Item
 
+// Len is for interface heap.Interface.
 func (q QueuePrioritizedByFloat32) Len() int {
 	return len(q)
 }
 
+// Less is for interface heap.Interface.
 func (q QueuePrioritizedByFloat32) Less(i, j int) bool {
 	return q[i].priority > q[j].priority
 }
 
+// Push is for interface heap.Interface.
 func (q *QueuePrioritizedByFloat32) Push(item interface{}) {
 	*q = append(*q, item.(QueuePrioritizedByFloat32Item))
 }
 
+// Pop is for interface heap.Interface.
 func (q *QueuePrioritizedByFloat32) Pop() interface{} {
 	item := (*q)[len(*q)-1]
 	*q = (*q)[:len(*q)-1]
 	return item
 }
 
+// Swap is for interface heap.Interface.
 func (q QueuePrioritizedByFloat32) Swap(i, j int) {
 	q[i], q[j] = q[j], q[i]
 }
@@ -172,23 +183,23 @@ func Painter_TopLabelSubSet(ds *sticker.Dataset, Z []sticker.KeyValues32, K uint
 		labelsTopK := sticker.RankTopK(labelFreqs, subK)
 		for _, label := range labelsTopK {
 			labelMap_ := make(map[uint32]bool, len(labelMap))
-			for label_, _ := range labelMap {
-				labelMap_[label_] = true
+			for l := range labelMap {
+				labelMap_[l] = true
 			}
 			labelMap_[label] = true
 			heap.Push(&queue, NewQueuePrioritizedByFloat32Item(labelFreqs[label], labelMap_))
 		}
 		if filterK < uint(len(queue)) {
-			queue_ := queue
+			queueOld := queue
 			queue = make(QueuePrioritizedByFloat32, filterK)
 			for r := uint(0); r < filterK; r++ {
-				queue[r] = heap.Pop(&queue_).(QueuePrioritizedByFloat32Item)
+				queue[r] = heap.Pop(&queueOld).(QueuePrioritizedByFloat32Item)
 			}
 			heap.Init(&queue)
 		}
 	}
 	labels := make([]uint32, 0, len(labelMap))
-	for label, _ := range labelMap {
+	for label := range labelMap {
 		labels = append(labels, label)
 	}
 	return labels

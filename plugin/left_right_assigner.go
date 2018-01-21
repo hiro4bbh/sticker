@@ -13,7 +13,7 @@ import (
 //
 // This function returns no error currently.
 func LeftRightAssigner_greedyBottomRanks(ds *sticker.Dataset, delta []bool, debug *log.Logger) error {
-	for i, _ := range delta {
+	for i := range delta {
 		delta[i] = false
 	}
 	labelFreq := make(map[uint32]float32)
@@ -33,8 +33,8 @@ func LeftRightAssigner_greedyBottomRanks(ds *sticker.Dataset, delta []bool, debu
 			if delta[i] {
 				continue
 			}
-			for _, label_ := range yi {
-				if label_ == label {
+			for _, l := range yi {
+				if l == label {
 					delta[i] = true
 					nlefts--
 					nrights++
@@ -128,6 +128,7 @@ var LeftRightAssigners = map[string]LeftRightAssigner{
 	"none":              LeftRightAssigner_none,
 }
 
+// DefaultLeftRightAssignerName is the default LeftRightAssigner name.
 const DefaultLeftRightAssignerName = "nDCG"
 
 func _LeftRightAssignInitializer_topLabels(isGraph bool, ds *sticker.Dataset, params *LabelTreeParameters, rng *rand.Rand, debug *log.Logger) []bool {
@@ -144,10 +145,8 @@ func _LeftRightAssignInitializer_topLabels(isGraph bool, ds *sticker.Dataset, pa
 	labelRankTopK := sticker.RankTopK(labelFreq, K)
 	labelInvRankTopK := sticker.InvertRanks(labelRankTopK)
 	labelFreqTopK := make(map[uint32]float32)
-	sumLabelFreqTopK := float32(0.0)
 	for _, label := range labelRankTopK {
 		labelFreqTopK[label] = labelFreq[label]
-		sumLabelFreqTopK += labelFreqTopK[label]
 	}
 	A := make([]float32, K*K)
 	if isGraph {
@@ -166,16 +165,16 @@ func _LeftRightAssignInitializer_topLabels(isGraph bool, ds *sticker.Dataset, pa
 		}
 	} else {
 		for _, yi := range ds.Y {
-			label_ranks := make(sticker.KeyValues32OrderedByValue, 0, len(yi))
+			labelRanks := make(sticker.KeyValues32OrderedByValue, 0, len(yi))
 			for _, label := range yi {
 				if rank, ok := labelInvRankTopK[label]; ok {
-					label_ranks = append(label_ranks, sticker.KeyValue32{label, float32(rank)})
+					labelRanks = append(labelRanks, sticker.KeyValue32{label, float32(rank)})
 				}
 			}
-			sort.Sort(label_ranks)
-			for j := 0; j < len(label_ranks)-1; j++ {
-				A[uint(label_ranks[j].Value-1)*K+uint(label_ranks[j+1].Value-1)]++
-				A[uint(label_ranks[j+1].Value-1)*K+uint(label_ranks[j].Value-1)]++
+			sort.Sort(labelRanks)
+			for j := 0; j < len(labelRanks)-1; j++ {
+				A[uint(labelRanks[j].Value-1)*K+uint(labelRanks[j+1].Value-1)]++
+				A[uint(labelRanks[j+1].Value-1)*K+uint(labelRanks[j].Value-1)]++
 			}
 		}
 	}
@@ -221,7 +220,7 @@ func LeftRightAssignInitializer_topLabelTree(ds *sticker.Dataset, params *LabelT
 // This is registered to LeftRightAssignInitializers.
 func LeftRightAssignInitializer_uniform(ds *sticker.Dataset, params *LabelTreeParameters, rng *rand.Rand, debug *log.Logger) []bool {
 	delta := make([]bool, ds.Size())
-	for i, _ := range delta {
+	for i := range delta {
 		delta[i] = rng.Float32() >= 0.5
 	}
 	return delta
@@ -238,4 +237,5 @@ var LeftRightAssignInitializers = map[string]LeftRightAssignInitializer{
 	"uniform":       LeftRightAssignInitializer_uniform,
 }
 
+// DefaultLeftRightAssignInitializerName is the default LeftRightAssignInitializer name.
 const DefaultLeftRightAssignInitializerName = "uniform"

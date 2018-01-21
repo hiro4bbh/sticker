@@ -113,14 +113,14 @@ func (cmd *ShuffleCommand) Run() error {
 				}
 			}
 			countTrain, countBoth, countTest := 0, 0, 0
-			for label, _ := range trainLabelSet {
+			for label := range trainLabelSet {
 				if _, ok := testLabelSet[label]; ok {
 					countBoth++
 				} else {
 					countTrain++
 				}
 			}
-			for label, _ := range testLabelSet {
+			for label := range testLabelSet {
 				if _, ok := trainLabelSet[label]; !ok {
 					countTest++
 				}

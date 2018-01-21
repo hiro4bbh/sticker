@@ -158,7 +158,7 @@ func BinaryClassifierTrainer_L2SVC_PrimalCD(X sticker.FeatureVectors, Y []bool, 
 		}
 	}
 	// Initialize weights with zero.
-	for feature, _ := range featureMapSet {
+	for feature := range featureMapSet {
 		w[feature] = 0.0
 	}
 	// HfeatureSet is the set of the H-value (like hessian) used in calculating the upper bound of the step size for each feature.
@@ -174,7 +174,7 @@ func BinaryClassifierTrainer_L2SVC_PrimalCD(X sticker.FeatureVectors, Y []bool, 
 	}
 	featureMapSet[^uint32(0)] = []int{}
 	Hintercept := float32(0.0)
-	for i, _ := range X {
+	for i := range X {
 		if Y[i] {
 			Hintercept += C * 1.0 * 1.0
 		} else {
@@ -197,7 +197,7 @@ func BinaryClassifierTrainer_L2SVC_PrimalCD(X sticker.FeatureVectors, Y []bool, 
 			// Here, the generalized derivative of max\{0, x\} is defined as \delta[x > 0].
 			loss, d1, d2 := float32(0.0), float32(0.0), float32(0.0)
 			if feature == ^uint32(0) {
-				for i, _ := range X {
+				for i := range X {
 					yi := float32(-1.0)
 					if Y[i] {
 						yi = +1.0
@@ -239,7 +239,7 @@ func BinaryClassifierTrainer_L2SVC_PrimalCD(X sticker.FeatureVectors, Y []bool, 
 				}
 				newloss := float32(0.0)
 				if feature == ^uint32(0) {
-					for i, _ := range X {
+					for i := range X {
 						yi := float32(-1.0)
 						if Y[i] {
 							yi = +1.0
@@ -270,7 +270,7 @@ func BinaryClassifierTrainer_L2SVC_PrimalCD(X sticker.FeatureVectors, Y []bool, 
 			w[feature] += delta
 			// Update each predictor
 			if feature == ^uint32(0) {
-				for i, _ := range X {
+				for i := range X {
 					Z[i] += delta * 1.0
 				}
 			} else {

@@ -188,24 +188,22 @@ var TemplateStandardFunctions = template.FuncMap{
 				return s[start:]
 			}
 			return s[start : start+n]
-		} else {
-			if len(s)+start < 0 {
-				start = -len(s)
-			}
-			if len(s)+start+n >= len(s) {
-				return s[len(s)+start:]
-			}
-			return s[len(s)+start : len(s)+start+n]
 		}
+		if len(s)+start < 0 {
+			start = -len(s)
+		}
+		if len(s)+start+n >= len(s) {
+			return s[len(s)+start:]
+		}
+		return s[len(s)+start : len(s)+start+n]
 	},
 
 	// annotateUint32 returns a string annotated with m.
 	"annotateUint32": func(m []string, v uint32) string {
 		if v < uint32(len(m)) {
 			return m[v]
-		} else {
-			return fmt.Sprintf("%d", v)
 		}
+		return fmt.Sprintf("%d", v)
 	},
 	// annotateInts returns a string slice whose value is annotated with m.
 	"annotateInts": func(m []string, a []int) []string {

@@ -29,9 +29,9 @@ func TestTrainLabelConst(t *testing.T) {
 	}
 	goassert.New(t, Y_).Equal(model.PredictAll(ds.X, 4))
 	// Test encoder/decoder.
-	var buf_ bytes.Buffer
-	goassert.New(t, "LabelConst should be encoded with EncodeLabelConst").ExpectError(gob.NewEncoder(&buf_).Encode(model))
 	var buf bytes.Buffer
+	goassert.New(t, "LabelConst should be encoded with EncodeLabelConst").ExpectError(gob.NewEncoder(&buf).Encode(model))
+	buf.Reset()
 	goassert.New(t).SucceedWithoutError(EncodeLabelConst(model, &buf))
 	var decodedModel LabelConst
 	// gob.Decoder.Decode won't call LabelConst.GobDecode, because the encoder did not encode LabelConst.

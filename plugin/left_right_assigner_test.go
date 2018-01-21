@@ -15,14 +15,13 @@ func assertBinaryClassAssignmentEqual(t *testing.T, expected, got []bool) bool {
 	if expected[0] == got[0] {
 		goassert.New(t, expected).Equal(got)
 		return false
-	} else {
-		expected_ := make([]bool, len(expected))
-		for i, b := range expected {
-			expected_[i] = !b
-		}
-		goassert.New(t, expected_).Equal(got)
-		return true
 	}
+	expectedNeg := make([]bool, len(expected))
+	for i, b := range expected {
+		expectedNeg[i] = !b
+	}
+	goassert.New(t, expectedNeg).Equal(got)
+	return true
 }
 
 func TestLeftRightAssigner_greedyBottomRanks(t *testing.T) {

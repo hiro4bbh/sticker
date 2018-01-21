@@ -113,14 +113,13 @@ func (opts *Options) FeatureMap(feature uint32, quote bool) string {
 	if feature < uint32(len(opts.featureMap)) {
 		if quote {
 			return fmt.Sprintf("%q", opts.featureMap[feature])
-		} else {
-			return opts.featureMap[feature]
 		}
+		return opts.featureMap[feature]
 	}
 	return fmt.Sprintf("%d", feature)
 }
 
-// GetLogger returns opt.DebugLogger.
+// GetDebugLogger returns opt.DebugLogger.
 func (opts *Options) GetDebugLogger() *log.Logger {
 	return opts.DebugLogger
 }
@@ -173,9 +172,8 @@ func (opts *Options) LabelMap(label uint32, quote bool) string {
 	if label < uint32(len(opts.labelMap)) {
 		if quote {
 			return fmt.Sprintf("%q", opts.labelMap[label])
-		} else {
-			return opts.labelMap[label]
 		}
+		return opts.labelMap[label]
 	}
 	return fmt.Sprintf("%d", label)
 }
@@ -380,10 +378,7 @@ func (opts *Options) RunHTTPServer(addr string, initializer func(handleFunc func
 		http.NotFoundHandler().ServeHTTP(writer, req)
 	})
 	opts.Logger.Printf("server is listening on %s\n", addr)
-	if err := http.ListenAndServe(addr, mux); err != nil {
-		return err
-	}
-	return nil
+	return http.ListenAndServe(addr, mux)
 }
 
 // ReadMap reads the map file in the dataset path.

@@ -5,7 +5,7 @@ import (
 	"encoding/gob"
 )
 
-// InitializePlugins does nothing, because init functions in this package registers functions to sticker.
+// InitializePlugin does nothing, because init functions in this package registers functions to sticker.
 // Thus it is unnecessary for users to call any function in this package.
 // Users can call this function for avoiding any import error.
 func InitializePlugin() {

@@ -86,7 +86,7 @@ func AvgTotalVariationAmongSparseVectors(svs SparseVectors) float32 {
 		Zs[i] = Z
 	}
 	keys := make([]int, 0, len(keySet))
-	for key, _ := range keySet {
+	for key := range keySet {
 		keys = append(keys, int(key))
 	}
 	sort.Ints(keys)

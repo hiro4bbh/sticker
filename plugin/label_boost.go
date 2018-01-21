@@ -157,7 +157,7 @@ func TrainLabelBoost(ds *sticker.Dataset, params *LabelBoostParameters, debug *l
 				}
 			}
 			if nposs < nnegs {
-				for i, _ := range pairCs {
+				for i := range pairCs {
 					if deltas[i] {
 						pairCs[i] *= float32(nnegs) / float32(nposs)
 					}
@@ -236,7 +236,7 @@ func TrainLabelBoost(ds *sticker.Dataset, params *LabelBoostParameters, debug *l
 					updatedLabelSet[label] = true
 				}
 			}
-			for label, _ := range labelSet {
+			for label := range labelSet {
 				if _, ok := updatedLabelSet[label]; !ok {
 					zi = append(zi, sticker.KeyValue32{label, 0.0 + zti})
 				}
@@ -317,7 +317,7 @@ func EncodeLabelBoostWithGobEncoder(model *LabelBoost, encoder *gob.Encoder) err
 		return fmt.Errorf("EncodeLabelBoost: Biases: %s", err)
 	}
 	features := make([]int, 0, len(model.WeightLists))
-	for feature, _ := range model.WeightLists {
+	for feature := range model.WeightLists {
 		features = append(features, int(feature))
 	}
 	sort.Ints(features)
