@@ -63,7 +63,7 @@ func (cmd *SummarizeCommand) Run() error {
 		return nil
 	}
 	opts := cmd.opts
-	opts.Logger.Printf("InspectCommands: %#v", cmd)
+	opts.Logger.Printf("SummarizeCommands: %#v", cmd)
 	dsname := opts.GetDatasetName()
 	opts.Logger.Printf("loading table %q from dataset %q ...", cmd.TableName, dsname)
 	ds, err := opts.ReadDataset(cmd.TableName)

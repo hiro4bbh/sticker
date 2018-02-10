@@ -609,7 +609,7 @@ func (opts *Options) SetLabelNext(value string) {
 
 // ShowHelp shows the help.
 func (opts *Options) ShowHelp() {
-	fmt.Fprintf(opts.ErrorWriter, "sticker-util\nCopyright 2017- Tatsuhiro Aoshima (hiro4bbh@gmail.com).\n\nUsage: [commonOptions] datasetPath (@{compareForest|inspectForest|inspectOne|pruneOne|trainBoost|trainConst|trainForest|trainNearest|trainNew|trainOne|testBoost|testConst|testForest|testNearest|testNext|testOne|shuffle|summarize} [subCommandOptions])*\n")
+	fmt.Fprintf(opts.ErrorWriter, "sticker-util\nCopyright 2017- Tatsuhiro Aoshima (hiro4bbh@gmail.com).\n\nUsage: [commonOptions] datasetPath (@{compareForest|inspectForest|inspectOne|pruneOne|shuffle|summarize|trainBoost|trainConst|trainForest|trainNearest|trainNew|trainOne|testBoost|testConst|testForest|testNearest|testNext|testOne} [subCommandOptions])*\n")
 	if opts.flagSet == nil {
 		opts.initializeFlagSet()
 	}
