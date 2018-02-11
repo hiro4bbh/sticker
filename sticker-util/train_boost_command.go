@@ -39,7 +39,7 @@ func NewTrainBoostCommand(opts *Options) *TrainBoostCommand {
 		PainterK:           boostParams.PainterK,
 		PainterName:        boostParams.PainterName,
 		T:                  boostParams.T,
-		TableNames:         common.OptionStrings{},
+		TableNames:         common.OptionStrings{true, []string{"train.txt"}},
 		opts:               opts,
 	}
 }
@@ -89,10 +89,10 @@ func (cmd *TrainBoostCommand) Run() error {
 		X: sticker.FeatureVectors{},
 		Y: sticker.LabelVectors{},
 	}
-	if len(cmd.TableNames) == 0 {
+	if len(cmd.TableNames.Values) == 0 {
 		return fmt.Errorf("specify table names")
 	}
-	for _, tblname := range cmd.TableNames {
+	for _, tblname := range cmd.TableNames.Values {
 		opts.Logger.Printf("loading table %q of dataset %q ...", tblname, dsname)
 		subds, err := opts.ReadDataset(tblname)
 		if err != nil {
@@ -104,7 +104,7 @@ func (cmd *TrainBoostCommand) Run() error {
 	if err != nil {
 		return err
 	}
-	joinedTblname := common.JoinTableNames(cmd.TableNames)
+	joinedTblname := common.JoinTableNames(cmd.TableNames.Values)
 	filename := opts.LabelBoost
 	if filename == "" {
 		filename = fmt.Sprintf("./labelboost/%s.%s.T%d.labelboost", dsname, joinedTblname, cmd.T)

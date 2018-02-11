@@ -34,14 +34,14 @@ type BinaryClassifier struct {
 	Beta []float32
 }
 
-// BinaryClassifierTrainer_L1Logistic_PrimalSGD returns an trained BinaryClassifier with FTRL-Proximal [McMahan+ 2013] method for L1-penalized logistic regression.
+// BinaryClassifierTrainer_L1Logistic_PrimalSGD returns an trained BinaryClassifier with FTRL-Proximal (McMahan+ 2013) method for L1-penalized logistic regression.
 // This can be used for estimating the probability which the given data point belongs to the positive class, and this algorithm would produce the smaller model.
 //
 // This function returns no error currently.
 //
 // References:
 //
-// [McMahan+ 2013] H. B. McMahan, et al. "Ad Click Prediction: a View from the Trenches." Proceedings of the 19th ACM SIGKDD International Conference on Knowledge Discovery and Data Mining, 2013.
+// (McMahan+ 2013) H. B. McMahan, et al. "Ad Click Prediction: a View from the Trenches." Proceedings of the 19th ACM SIGKDD International Conference on Knowledge Discovery and Data Mining, 2013.
 func BinaryClassifierTrainer_L1Logistic_PrimalSGD(X FeatureVectors, Y []bool, C, epsilon float32, debug *log.Logger) (*BinaryClassifier, error) {
 	rng := rand.New(rand.NewSource(0))
 	// lambda is the penalty parameter.
@@ -153,17 +153,17 @@ func BinaryClassifierTrainer_L1Logistic_PrimalSGD(X FeatureVectors, Y []bool, C,
 // BinaryClassifierTrainer_L1SVC_PrimalSGD trains a L1-Support Vector Classifier with primal stochastic gradient descent.
 // This is registered to BinaryClassifierTrainers.
 //
-// The used update procedure is the one used by Online Passive-Aggressive Algorithm [Crammer+ 2006] with the dynamic penalty parameter depending on the round number t.
-// This update is proven to be safe, that is, this leads to sane results even when the learning rate is large [Karampatziakis+ 2011, SubSection 4.2].
+// The used update procedure is the one used by Online Passive-Aggressive Algorithm (Crammer+ 2006) with the dynamic penalty parameter depending on the round number t.
+// This update is proven to be safe, that is, this leads to sane results even when the learning rate is large (Karampatziakis+ 2011, SubSection 4.2).
 // Thus, although we fix the eta0 as 1.0 and the learning rate as eta0 / t, this algorithm is enough fast and accurate.
 //
 // This function returns no error currently.
 //
 // Reference:
 //
-// [Crammer+ 2006] K.Crammer, O. Dekel, J. Keshet, S. Shalev-Shwarts, and Y. Singer. "Online Passive-Aggressive Algorithms." Journal of Machine Learning Research, vol. 7, pp. 551-585, 2006.
+// (Crammer+ 2006) K.Crammer, O. Dekel, J. Keshet, S. Shalev-Shwarts, and Y. Singer. "Online Passive-Aggressive Algorithms." Journal of Machine Learning Research, vol. 7, pp. 551-585, 2006.
 //
-// [Karampatziakis+ 2011] N. Karampatziakis, and J. Langford, "Online Importance Weight Aware Updates." Association for Uncertainty in Artificial Intelligence, 2011.
+// (Karampatziakis+ 2011) N. Karampatziakis, and J. Langford, "Online Importance Weight Aware Updates." Association for Uncertainty in Artificial Intelligence, 2011.
 func BinaryClassifierTrainer_L1SVC_PrimalSGD(X FeatureVectors, Y []bool, C, epsilon float32, debug *log.Logger) (*BinaryClassifier, error) {
 	rng := rand.New(rand.NewSource(0))
 	n, d := len(X), X.Dim()

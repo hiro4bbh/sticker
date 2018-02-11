@@ -62,10 +62,10 @@ func (cmd *CompareForestCommand) Run() error {
 		X: sticker.FeatureVectors{},
 		Y: sticker.LabelVectors{},
 	}
-	if len(cmd.TableNames) == 0 {
+	if len(cmd.TableNames.Values) == 0 {
 		return fmt.Errorf("specify the table names")
 	}
-	for _, tblname := range cmd.TableNames {
+	for _, tblname := range cmd.TableNames.Values {
 		opts.Logger.Printf("loading table %q of dataset %q ...", tblname, dsname)
 		subds, err := opts.ReadDataset(tblname)
 		if err != nil {

@@ -64,7 +64,7 @@ func (cmd *InspectOneCommand) Run() error {
 	results := make([]interface{}, 0, len(opts.TestOnes))
 	for _, testOne := range opts.TestOnes {
 		results = append(results, map[string]interface{}{
-			"tableName": common.JoinTableNames(testOne.TableNames),
+			"tableName": common.JoinTableNames(testOne.TableNames.Values),
 			"result":    testOne.Result,
 		})
 	}

@@ -30,10 +30,10 @@ type TestOneCommand struct {
 func NewTestOneCommand(opts *Options) *TestOneCommand {
 	return &TestOneCommand{
 		Help:       false,
-		Ks:         common.OptionUints{},
+		Ks:         common.OptionUints{true, []uint{1, 3, 5}},
 		Restore:    false,
-		Ts:         common.OptionUints{},
-		TableNames: common.OptionStrings{},
+		Ts:         common.OptionUints{true, []uint{0}},
+		TableNames: common.OptionStrings{true, []string{"test.txt"}},
 		opts:       opts,
 	}
 }
@@ -57,9 +57,6 @@ func (cmd *TestOneCommand) Parse(args []string) ([]string, error) {
 	if err := cmd.flagSet.Parse(args); err != nil {
 		return nil, err
 	}
-	if len(cmd.Ts) == 0 {
-		cmd.Ts = common.OptionUints{0}
-	}
 	return cmd.flagSet.Args(), nil
 }
 
@@ -72,7 +69,7 @@ func (cmd *TestOneCommand) Run() error {
 	opts := cmd.opts
 	opts.Logger.Printf("TestOneCommands: %#v", cmd)
 	dsname := opts.GetDatasetName()
-	tblname := common.JoinTableNames(cmd.TableNames)
+	tblname := common.JoinTableNames(cmd.TableNames.Values)
 	restoreName := fmt.Sprintf("%s.testOne.%s.%s.bin", opts.LabelOne, dsname, tblname)
 	if cmd.Restore {
 		opts.Logger.Printf("restroing the dumped test result in %q ...", restoreName)
@@ -87,10 +84,10 @@ func (cmd *TestOneCommand) Run() error {
 		X: sticker.FeatureVectors{},
 		Y: sticker.LabelVectors{},
 	}
-	if len(cmd.TableNames) == 0 {
+	if len(cmd.TableNames.Values) == 0 {
 		return fmt.Errorf("specify the table names")
 	}
-	for _, tblname := range cmd.TableNames {
+	for _, tblname := range cmd.TableNames.Values {
 		opts.Logger.Printf("loading table %q of dataset %q ...", tblname, dsname)
 		subds, err := opts.ReadDataset(tblname)
 		if err != nil {
@@ -105,13 +102,13 @@ func (cmd *TestOneCommand) Run() error {
 		return err
 	}
 	maxK := uint(0)
-	for _, K := range cmd.Ks {
+	for _, K := range cmd.Ks.Values {
 		if maxK < K {
 			maxK = K
 		}
 	}
-	maxAvgPrecisions := make([]float32, 0, len(cmd.Ks))
-	for _, K := range cmd.Ks {
+	maxAvgPrecisions := make([]float32, 0, len(cmd.Ks.Values))
+	for _, K := range cmd.Ks.Values {
 		maxPrecisionKs := sticker.ReportMaxPrecision(ds.Y, K)
 		maxSumPrecisionK := float32(0.0)
 		for _, maxPrecisionKi := range maxPrecisionKs {
@@ -119,8 +116,8 @@ func (cmd *TestOneCommand) Run() error {
 		}
 		maxAvgPrecisions = append(maxAvgPrecisions, maxSumPrecisionK/float32(len(ds.Y)))
 	}
-	rounds := make([]interface{}, 0, len(cmd.Ts))
-	for _, T := range cmd.Ts {
+	rounds := make([]interface{}, 0, len(cmd.Ts.Values))
+	for _, T := range cmd.Ts.Values {
 		inferenceStartTime := time.Now()
 		opts.Logger.Printf("T=%d: predicting top-%d labels ...", T, maxK)
 		Y := model.PredictAll(ds.X, maxK, T)
@@ -128,8 +125,8 @@ func (cmd *TestOneCommand) Run() error {
 		inferenceTime := inferenceEndTime.Sub(inferenceStartTime)
 		inferenceTimePerEntry := time.Duration(inferenceTime.Nanoseconds() / int64(n)).Round(time.Microsecond)
 		fmt.Fprintf(opts.OutputWriter, "T=%d: finished inference on %d entries in %s (about %s/entry)\n", T, n, inferenceTime, inferenceTimePerEntry)
-		precisions, nDCGs := make([]float32, 0, len(cmd.Ks)), make([]float32, 0, len(cmd.Ks))
-		for iK, K := range cmd.Ks {
+		precisions, nDCGs := make([]float32, 0, len(cmd.Ks.Values)), make([]float32, 0, len(cmd.Ks.Values))
+		for iK, K := range cmd.Ks.Values {
 			precisionKs := sticker.ReportPrecision(ds.Y, K, Y)
 			sumPrecisionK := float32(0.0)
 			for _, precisionKi := range precisionKs {
@@ -155,7 +152,7 @@ func (cmd *TestOneCommand) Run() error {
 		})
 	}
 	cmd.Result = map[string]interface{}{
-		"Ks":            []uint(cmd.Ks),
+		"Ks":            cmd.Ks.Values,
 		"maxPrecisions": maxAvgPrecisions,
 		"nentries":      n,
 		"rounds":        rounds,

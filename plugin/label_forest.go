@@ -471,7 +471,11 @@ func (tree *LabelTree) PredictAll(leafIdSlice []uint64, K uint) sticker.LabelVec
 	return YK
 }
 
-// LabelForest is the data structure for label forest.
+// LabelForest is variously-modified FastXML (Prabhu+ 2014).
+//
+// References:
+//
+// (Prabhu+ 2014) Y. Prabhu, and M. Varma. "FastXML: A Fast, Accurate and Stable Tree-Classifier for Extreme Multi-Label Learning." Proceedings of the 20th ACM SIGKDD International Conference on Knowledge Discovery and Data Mining, pp. 263--272, 2014.
 type LabelForest struct {
 	// TreeParams is the parameters for training each LabelTree.
 	TreeParams *LabelTreeParameters

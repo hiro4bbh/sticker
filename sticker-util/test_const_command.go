@@ -29,9 +29,9 @@ type TestConstCommand struct {
 func NewTestConstCommand(opts *Options) *TestConstCommand {
 	return &TestConstCommand{
 		Help:       false,
-		Ks:         common.OptionUints{},
+		Ks:         common.OptionUints{true, []uint{1, 3, 5}},
 		Restore:    false,
-		TableNames: common.OptionStrings{},
+		TableNames: common.OptionStrings{true, []string{"test.txt"}},
 		opts:       opts,
 	}
 }
@@ -66,7 +66,7 @@ func (cmd *TestConstCommand) Run() error {
 	opts := cmd.opts
 	opts.Logger.Printf("TestConstCommands: %#v", cmd)
 	dsname := opts.GetDatasetName()
-	tblname := common.JoinTableNames(cmd.TableNames)
+	tblname := common.JoinTableNames(cmd.TableNames.Values)
 	restoreName := fmt.Sprintf("%s.testConst.%s.%s.bin", opts.LabelConst, dsname, tblname)
 	if cmd.Restore {
 		opts.Logger.Printf("restroing the dumped test result in %q ...", restoreName)
@@ -81,10 +81,10 @@ func (cmd *TestConstCommand) Run() error {
 		X: sticker.FeatureVectors{},
 		Y: sticker.LabelVectors{},
 	}
-	if len(cmd.TableNames) == 0 {
+	if len(cmd.TableNames.Values) == 0 {
 		return fmt.Errorf("specify the table names")
 	}
-	for _, tblname := range cmd.TableNames {
+	for _, tblname := range cmd.TableNames.Values {
 		opts.Logger.Printf("loading table %q of dataset %q ...", tblname, dsname)
 		subds, err := opts.ReadDataset(tblname)
 		if err != nil {
@@ -99,13 +99,13 @@ func (cmd *TestConstCommand) Run() error {
 		return err
 	}
 	maxK := uint(0)
-	for _, K := range cmd.Ks {
+	for _, K := range cmd.Ks.Values {
 		if maxK < K {
 			maxK = K
 		}
 	}
-	maxAvgPrecisions := make([]float32, 0, len(cmd.Ks))
-	for _, K := range cmd.Ks {
+	maxAvgPrecisions := make([]float32, 0, len(cmd.Ks.Values))
+	for _, K := range cmd.Ks.Values {
 		maxPrecisionKs := sticker.ReportMaxPrecision(ds.Y, K)
 		maxSumPrecisionK := float32(0.0)
 		for _, maxPrecisionKi := range maxPrecisionKs {
@@ -120,8 +120,8 @@ func (cmd *TestConstCommand) Run() error {
 	inferenceTime := inferenceEndTime.Sub(inferenceStartTime)
 	inferenceTimePerEntry := time.Duration(inferenceTime.Nanoseconds() / int64(n)).Round(time.Microsecond)
 	fmt.Fprintf(opts.OutputWriter, "finished inference on %d entries in %s (about %s/entry)\n", n, inferenceTime, inferenceTimePerEntry)
-	precisions, nDCGs := make([]float32, 0, len(cmd.Ks)), make([]float32, 0, len(cmd.Ks))
-	for iK, K := range cmd.Ks {
+	precisions, nDCGs := make([]float32, 0, len(cmd.Ks.Values)), make([]float32, 0, len(cmd.Ks.Values))
+	for iK, K := range cmd.Ks.Values {
 		precisionKs := sticker.ReportPrecision(ds.Y, K, Y)
 		sumPrecisionK := float32(0.0)
 		for _, precisionKi := range precisionKs {
@@ -139,7 +139,7 @@ func (cmd *TestConstCommand) Run() error {
 		fmt.Fprintf(opts.OutputWriter, "T=Precision@%d=%-5.4g%%/%-5.4g%%, nDCG@%d=%-5.4g%%\n", K, avgPrecisionK*100, maxAvgPrecisions[iK]*100, K, avgNDCGK*100)
 	}
 	cmd.Result = map[string]interface{}{
-		"Ks":                    []uint(cmd.Ks),
+		"Ks":                    cmd.Ks.Values,
 		"maxPrecisions":         maxAvgPrecisions,
 		"nentries":              n,
 		"inferenceTime":         fmt.Sprintf("%s", inferenceTime),

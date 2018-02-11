@@ -114,9 +114,8 @@ func ReadLabelOne(filename string) (*sticker.LabelOne, error) {
 type OptionFloat32 float32
 
 // String is for interface flag.Value.
-// The default value is "0.0".
 func (opt *OptionFloat32) String() string {
-	return "0.0"
+	return fmt.Sprintf("%v", float32(*opt))
 }
 
 // Set is for interface flag.Value.
@@ -131,36 +130,56 @@ func (opt *OptionFloat32) Set(value string) error {
 
 // OptionStrings is the data structure for using string slice in flag.
 // This implements interface flag.Value.
-type OptionStrings []string
+type OptionStrings struct {
+	// WithDefault indicates whether Values are the default values or not.
+	// If true, Values are cleared when calling Set.
+	WithDefault bool
+	// Values is the list of the values.
+	Values []string
+}
 
 // String is for interface flag.Value.
-// The default value is "".
 func (opt *OptionStrings) String() string {
-	return ""
+	return fmt.Sprintf("%v", []string(opt.Values))
 }
 
 // Set is for interface flag.Value.
 func (opt *OptionStrings) Set(value string) error {
-	*opt = append(*opt, value)
+	if opt.WithDefault {
+		opt.Values = []string{value}
+		opt.WithDefault = false
+	} else {
+		opt.Values = append(opt.Values, value)
+	}
 	return nil
 }
 
 // OptionUints is the data structure for using uint slice in flag.
 // This implements interface flag.Value.
-type OptionUints []uint
+type OptionUints struct {
+	// WithDefault indicates whether Values are the default values or not.
+	// If true, Values are cleared when calling Set.
+	WithDefault bool
+	// Values is the list of the values.
+	Values []uint
+}
 
 // String is for interface flag.Value.
-// The default value is "".
 func (opt *OptionUints) String() string {
-	return ""
+	return fmt.Sprintf("%v", []uint(opt.Values))
 }
 
 // Set is for interface flag.Value.
 func (opt *OptionUints) Set(value string) error {
-	valueUint, err := strconv.ParseUint(value, 10, 64)
+	valueUint64, err := strconv.ParseUint(value, 10, 64)
 	if err != nil {
 		return err
 	}
-	*opt = append(*opt, uint(valueUint))
+	if opt.WithDefault {
+		opt.Values = []uint{uint(valueUint64)}
+		opt.WithDefault = false
+	} else {
+		opt.Values = append(opt.Values, uint(valueUint64))
+	}
 	return nil
 }

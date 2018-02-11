@@ -33,11 +33,11 @@ func NewTestNearestCommand(opts *Options) *TestNearestCommand {
 		Alpha:      common.OptionFloat32(1.0),
 		Beta:       common.OptionFloat32(1.0),
 		Help:       false,
-		Ks:         common.OptionUints{},
+		Ks:         common.OptionUints{true, []uint{1, 3, 5}},
 		N:          ^uint(0),
 		Per:        uint(0),
 		S:          uint(1),
-		TableNames: common.OptionStrings{},
+		TableNames: common.OptionStrings{true, []string{"test.txt"}},
 		opts:       opts,
 	}
 }
@@ -81,10 +81,10 @@ func (cmd *TestNearestCommand) Run() error {
 		X: sticker.FeatureVectors{},
 		Y: sticker.LabelVectors{},
 	}
-	if len(cmd.TableNames) == 0 {
+	if len(cmd.TableNames.Values) == 0 {
 		return fmt.Errorf("specify the table names")
 	}
-	for _, tblname := range cmd.TableNames {
+	for _, tblname := range cmd.TableNames.Values {
 		opts.Logger.Printf("loading table %q of dataset %q ...", tblname, dsname)
 		subds, err := opts.ReadDataset(tblname)
 		if err != nil {
@@ -105,13 +105,13 @@ func (cmd *TestNearestCommand) Run() error {
 		return err
 	}
 	maxK := uint(0)
-	for _, K := range cmd.Ks {
+	for _, K := range cmd.Ks.Values {
 		if maxK < K {
 			maxK = K
 		}
 	}
-	maxAvgPrecisions := make([]float32, 0, len(cmd.Ks))
-	for _, K := range cmd.Ks {
+	maxAvgPrecisions := make([]float32, 0, len(cmd.Ks.Values))
+	for _, K := range cmd.Ks.Values {
 		maxPrecisionKs := sticker.ReportMaxPrecision(ds.Y, K)
 		maxSumPrecisionK := float32(0.0)
 		for _, maxPrecisionKi := range maxPrecisionKs {
@@ -122,7 +122,7 @@ func (cmd *TestNearestCommand) Run() error {
 	opts.Logger.Printf("predicting top-%d labels ...", maxK)
 	inferenceStartTime := time.Now()
 	precisionKsMap, nDCGKsMap := make(map[uint][]float32), make(map[uint][]float32)
-	for _, K := range cmd.Ks {
+	for _, K := range cmd.Ks.Values {
 		precisionKsMap[K], nDCGKsMap[K] = make([]float32, 0, ds.Size()), make([]float32, 0, ds.Size())
 	}
 	report := func(Y_ sticker.LabelVectors, flush bool) {
@@ -131,8 +131,8 @@ func (cmd *TestNearestCommand) Run() error {
 		inferenceTime := inferenceEndTime.Sub(inferenceStartTime)
 		inferenceTimePerEntry := time.Duration(inferenceTime.Nanoseconds() / int64(n)).Round(time.Microsecond)
 		fmt.Fprintf(opts.OutputWriter, "finished inference on %d/%d entries (%-5.4g%%) in %s (about %s/entry)\n", n, len(ds.Y), float32(n)/float32(len(ds.Y))*100.0, inferenceTime, inferenceTimePerEntry)
-		precisions, nDCGs := make([]float32, 0, len(cmd.Ks)), make([]float32, 0, len(cmd.Ks))
-		for iK, K := range cmd.Ks {
+		precisions, nDCGs := make([]float32, 0, len(cmd.Ks.Values)), make([]float32, 0, len(cmd.Ks.Values))
+		for iK, K := range cmd.Ks.Values {
 			startidx := len(precisionKsMap[K])
 			precisionKsMap[K] = append(precisionKsMap[K], sticker.ReportPrecision(ds.Y[startidx:n], K, Y_[startidx:n])...)
 			sumPrecisionK := float32(0.0)
@@ -213,7 +213,7 @@ func (cmd *TestNearestCommand) Run() error {
 						line += fmt.Sprintf("\033[%dm%s\033[0m", yimap[label], opts.LabelMap(label, true))
 					}
 					line += "]: "
-					for iK, K := range cmd.Ks {
+					for iK, K := range cmd.Ks.Values {
 						if iK > 0 {
 							line += ","
 						}

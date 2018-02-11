@@ -32,7 +32,7 @@ func NewTrainOneCommand(opts *Options) *TrainOneCommand {
 		Epsilon:    common.OptionFloat32(boostParams.Epsilon),
 		Help:       false,
 		T:          boostParams.T,
-		TableNames: common.OptionStrings{},
+		TableNames: common.OptionStrings{true, []string{"train.txt"}},
 		opts:       opts,
 	}
 }
@@ -77,10 +77,10 @@ func (cmd *TrainOneCommand) Run() error {
 		X: sticker.FeatureVectors{},
 		Y: sticker.LabelVectors{},
 	}
-	if len(cmd.TableNames) == 0 {
+	if len(cmd.TableNames.Values) == 0 {
 		return fmt.Errorf("specify table names")
 	}
-	for _, tblname := range cmd.TableNames {
+	for _, tblname := range cmd.TableNames.Values {
 		opts.Logger.Printf("loading table %q of dataset %q ...", tblname, dsname)
 		subds, err := opts.ReadDataset(tblname)
 		if err != nil {
@@ -92,7 +92,7 @@ func (cmd *TrainOneCommand) Run() error {
 	if err != nil {
 		return err
 	}
-	joinedTblname := common.JoinTableNames(cmd.TableNames)
+	joinedTblname := common.JoinTableNames(cmd.TableNames.Values)
 	filename := opts.LabelOne
 	if filename == "" {
 		filename = fmt.Sprintf("./labelone/%s.%s.T%d.labelone", dsname, joinedTblname, cmd.T)

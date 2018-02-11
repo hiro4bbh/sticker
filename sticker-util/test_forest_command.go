@@ -27,9 +27,9 @@ type TestForestCommand struct {
 func NewTestForestCommand(opts *Options) *TestForestCommand {
 	return &TestForestCommand{
 		Help:        false,
-		Ks:          common.OptionUints{},
+		Ks:          common.OptionUints{true, []uint{1, 3, 5}},
 		OnlyResults: false,
-		TableNames:  common.OptionStrings{},
+		TableNames:  common.OptionStrings{true, []string{"test.txt"}},
 		Weighted:    false,
 		opts:        opts,
 	}
@@ -70,10 +70,10 @@ func (cmd *TestForestCommand) Run() error {
 		X: sticker.FeatureVectors{},
 		Y: sticker.LabelVectors{},
 	}
-	if len(cmd.TableNames) == 0 {
+	if len(cmd.TableNames.Values) == 0 {
 		return fmt.Errorf("specify the table names")
 	}
-	for _, tblname := range cmd.TableNames {
+	for _, tblname := range cmd.TableNames.Values {
 		opts.Logger.Printf("loading table %q of dataset %q ...", tblname, dsname)
 		subds, err := opts.ReadDataset(tblname)
 		if err != nil {
@@ -87,7 +87,7 @@ func (cmd *TestForestCommand) Run() error {
 		return err
 	}
 	maxK := uint(0)
-	for _, K := range cmd.Ks {
+	for _, K := range cmd.Ks.Values {
 		if maxK < K {
 			maxK = K
 		}
@@ -113,7 +113,7 @@ func (cmd *TestForestCommand) Run() error {
 		inferenceTime := inferenceEndTime.Sub(inferenceStartTime)
 		opts.Logger.Printf("finished inference on %d entries in %s (%s/entry)", ds.Size(), inferenceTime, time.Duration(inferenceTime.Nanoseconds()/int64(ds.Size())))
 	}
-	for _, K := range cmd.Ks {
+	for _, K := range cmd.Ks.Values {
 		pKs := sticker.ReportPrecision(ds.Y, K, Y)
 		indices := make([]uint64, len(pKs))
 		pKavg := float32(0.0)

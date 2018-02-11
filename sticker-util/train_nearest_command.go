@@ -24,7 +24,7 @@ type TrainNearestCommand struct {
 func NewTrainNearestCommand(opts *Options) *TrainNearestCommand {
 	return &TrainNearestCommand{
 		Help:       false,
-		TableNames: common.OptionStrings{},
+		TableNames: common.OptionStrings{true, []string{"train.txt"}},
 		opts:       opts,
 	}
 }
@@ -61,10 +61,10 @@ func (cmd *TrainNearestCommand) Run() error {
 		X: sticker.FeatureVectors{},
 		Y: sticker.LabelVectors{},
 	}
-	if len(cmd.TableNames) == 0 {
+	if len(cmd.TableNames.Values) == 0 {
 		return fmt.Errorf("specify table names")
 	}
-	for _, tblname := range cmd.TableNames {
+	for _, tblname := range cmd.TableNames.Values {
 		opts.Logger.Printf("loading table %q of dataset %q ...", tblname, dsname)
 		subds, err := opts.ReadDataset(tblname)
 		if err != nil {
@@ -76,7 +76,7 @@ func (cmd *TrainNearestCommand) Run() error {
 	if err != nil {
 		return err
 	}
-	joinedTblname := common.JoinTableNames(cmd.TableNames)
+	joinedTblname := common.JoinTableNames(cmd.TableNames.Values)
 	filename := opts.LabelNearest
 	if filename == "" {
 		filename = fmt.Sprintf("./labelnearest/%s.%s.labelnearest", dsname, joinedTblname)

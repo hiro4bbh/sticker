@@ -30,11 +30,11 @@ type ShuffleCommand struct {
 func NewShuffleCommand(opts *Options) *ShuffleCommand {
 	return &ShuffleCommand{
 		Help:       false,
-		Ks:         common.OptionUints{},
+		Ks:         common.OptionUints{true, []uint{1, 3, 5}},
 		ReportOnly: false,
 		S:          5,
 		Seed:       0,
-		TableNames: common.OptionStrings{},
+		TableNames: common.OptionStrings{true, []string{"train.txt", "test.txt"}},
 		opts:       opts,
 	}
 }
@@ -77,11 +77,11 @@ func (cmd *ShuffleCommand) Run() error {
 		Y: sticker.LabelVectors{},
 	}
 	dsname := opts.GetDatasetName()
-	if len(cmd.TableNames) == 0 {
+	if len(cmd.TableNames.Values) == 0 {
 		return fmt.Errorf("specify the table names")
 	}
-	starts := make([]int, 0, len(cmd.TableNames))
-	for _, tblname := range cmd.TableNames {
+	starts := make([]int, 0, len(cmd.TableNames.Values))
+	for _, tblname := range cmd.TableNames.Values {
 		opts.Logger.Printf("loading table %q from dataset %q ...", tblname, dsname)
 		subds, err := opts.ReadDataset(tblname)
 		if err != nil {
@@ -130,7 +130,7 @@ func (cmd *ShuffleCommand) Run() error {
 			copy(trainTblnames[t:], tblnames[t+1:])
 			testTblnames := []string{tblnames[t]}
 			fmt.Fprintf(opts.OutputWriter, "train=%#v, test=%#v: label counts: (train,test)=(%d,%d); (trainOnly,both,testOnly)=(%d,%d,%d)\n", trainTblnames, testTblnames, countTrain+countBoth, countTest+countBoth, countTrain, countBoth, countTest)
-			for _, K := range cmd.Ks {
+			for _, K := range cmd.Ks.Values {
 				avgPrecisionK := float32(0.0)
 				for i := testStart; i < testEnd; i++ {
 					precisionKi := float32(0.0)
@@ -149,14 +149,14 @@ func (cmd *ShuffleCommand) Run() error {
 			}
 		}
 	}
-	report(ds, starts, cmd.TableNames)
+	report(ds, starts, cmd.TableNames.Values)
 	opts.Logger.Printf("shuffling %d entries into %d tables with the random number generator (seed=%d) ...", n, S, cmd.Seed)
 	rng := rand.New(rand.NewSource(int64(cmd.Seed)))
 	for i := 0; i < n; i++ {
 		j := i + rng.Intn(n-i)
 		ds.X[i], ds.Y[i], ds.X[j], ds.Y[j] = ds.X[j], ds.Y[j], ds.X[i], ds.Y[i]
 	}
-	joinedTblname := common.JoinTableNames(cmd.TableNames)
+	joinedTblname := common.JoinTableNames(cmd.TableNames.Values)
 	unit := (uint(n) + S - 1) / S
 	starts, ends, tblnames := make([]int, 0, S), make([]int, 0, S), make([]string, 0, S)
 	for s := uint(0); s < S; s++ {

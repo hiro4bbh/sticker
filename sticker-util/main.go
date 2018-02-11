@@ -14,7 +14,7 @@ func init() {
 
 func main() {
 	plugin.InitializePlugin()
-	opts := NewOptions(os.Stdout, os.Stderr)
+	opts := NewOptions(os.Args[0], os.Stdout, os.Stderr)
 	if err := opts.Parse(os.Args[1:]); err != nil {
 		fmt.Printf("sticker-util: %s\n", err)
 		os.Exit(1)

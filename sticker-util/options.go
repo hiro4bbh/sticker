@@ -62,12 +62,13 @@ type Options struct {
 	Logger                    *log.Logger // -verbose
 	DebugLogger               *log.Logger // -debug
 
+	execpath             string
 	flagSet              *flag.FlagSet
 	featureMap, labelMap []string
 }
 
 // NewOptions returns a new Options with default values.
-func NewOptions(outputWriter, errorWriter io.Writer) *Options {
+func NewOptions(execpath string, outputWriter, errorWriter io.Writer) *Options {
 	return &Options{
 		CPUProfile:     "",
 		Debug:          false,
@@ -105,6 +106,8 @@ func NewOptions(outputWriter, errorWriter io.Writer) *Options {
 
 		OutputWriter: outputWriter,
 		ErrorWriter:  errorWriter,
+
+		execpath: execpath,
 	}
 }
 
@@ -609,7 +612,7 @@ func (opts *Options) SetLabelNext(value string) {
 
 // ShowHelp shows the help.
 func (opts *Options) ShowHelp() {
-	fmt.Fprintf(opts.ErrorWriter, "sticker-util\nCopyright 2017- Tatsuhiro Aoshima (hiro4bbh@gmail.com).\n\nUsage: [commonOptions] datasetPath (@{compareForest|inspectForest|inspectOne|pruneOne|shuffle|summarize|trainBoost|trainConst|trainForest|trainNearest|trainNew|trainOne|testBoost|testConst|testForest|testNearest|testNext|testOne} [subCommandOptions])*\n")
+	fmt.Fprintf(opts.ErrorWriter, "sticker-util\nCopyright 2017- Tatsuhiro Aoshima (hiro4bbh@gmail.com).\n\nUsage: %s [commonOptions] datasetPath (@{compareForest|inspectForest|inspectOne|pruneOne|shuffle|summarize|trainBoost|trainConst|trainForest|trainNearest|trainNew|trainOne|testBoost|testConst|testForest|testNearest|testNext|testOne} [subCommandOptions])*\n", opts.execpath)
 	if opts.flagSet == nil {
 		opts.initializeFlagSet()
 	}
