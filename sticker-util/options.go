@@ -197,6 +197,9 @@ func (opts *Options) Parse(args []string) error {
 		return fmt.Errorf("specify the path of dataset")
 	}
 	opts.DatasetPath = args[0]
+	if !strings.HasSuffix(opts.DatasetPath, "/") {
+		opts.DatasetPath = filepath.FromSlash(opts.DatasetPath + "/")
+	}
 	opts.InspectForest, opts.TestForests, opts.TrainForest = nil, []*TestForestCommand{}, nil
 	args = args[1:]
 	var err error
