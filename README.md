@@ -47,8 +47,8 @@ sticker-util -verbose -debug <dataset-root> @summarize -table=<table-filename-re
 If `featureMap` and `labelMap` is empty string, then feature and label maps are ignored, respectively.
 
 # Implemented Models
-## `LabelNearest`: Weighted Sparse Nearest-Neighbor Method
-`LabelNearest` is _Weighted Sparse Nearest-Neighbor Method_ __(Aoshima+ 2018)__ which achieved SOTA performances on several XMLC datasets __(Bhatia+ 2016)__.
+## `LabelNearest`: Sparse Weighted Nearest-Neighbor Method
+`LabelNearest` is _Sparse Weighted Nearest-Neighbor Method_ __(Aoshima+ 2018)__ which achieved SOTA performances on several XMLC datasets __(Bhatia+ 2016)__.
 For example, you can test this method on Amazon-3M dataset __(Bhatia+ 2016)__ as follows:
 
 ```
