@@ -7,6 +7,12 @@ import (
 	"log"
 )
 
+// SimCountPair is the data structure for float32 similarity and uint32 count.
+type SimCountPair struct {
+	Sim float32
+	Count uint32
+}
+
 // LabelNearest is the sparse weighted nearest neighbourhood.
 // Sparse means in the following 3 reasons:
 //   (i) The similarity used in constructing the nearest neighbourhood defined by the inner-product on the features activated in the given entry.
@@ -155,48 +161,43 @@ func (model *LabelNearest) GobEncode() ([]byte, error) {
 // FindNearests returns the S nearest entries with each similarity for the given entry.
 // See Predict for hyper-parameter details.
 func (model *LabelNearest) FindNearests(x FeatureVector, S uint, beta float32) KeyValues32 {
-	simCounts := make([][2]float32, len(model.LabelVectors))
+	simCounts := make([]SimCountPair, len(model.LabelVectors))
 	for _, xpair := range x {
 		featureIndex := model.FeatureIndexList[xpair.Key]
 		for _, indexValue := range featureIndex {
-			simCounts[indexValue.Key][0] += indexValue.Value * xpair.Value
-			simCounts[indexValue.Key][1]++
+			simCounts[indexValue.Key].Sim += indexValue.Value * xpair.Value
+			simCounts[indexValue.Key].Count++
 		}
 	}
 	indexSimsTopS := make(KeyValues32, 0, S)
 	for i, simCount := range simCounts {
-		sim, count := simCount[0], simCount[1]
-		if count != 0.0 {
-			if sim > 0.0 {
-				// For efficiency, call Pow32 as short-cut style.
-				jaccard := count / (float32(len(x)) + model.NfeaturesList[i] - count)
-				if beta == 0 {
-				} else if beta == 1 {
-					sim *= jaccard
-				} else {
-					sim *= Pow32(jaccard, beta)
-				}
-				if len(indexSimsTopS) == 0 {
+		if sim, count := simCount.Sim, simCount.Count; sim > 0.0 {
+			// For efficiency, call Pow32 as short-cut style.
+			jaccard := float32(count) / (float32(len(x)) + model.NfeaturesList[i] - float32(count))
+			if beta == 0 {
+			} else if beta == 1 {
+				sim *= jaccard
+			} else {
+				sim *= Pow32(jaccard, beta)
+			}
+			if len(indexSimsTopS) == 0 {
+				indexSimsTopS = append(indexSimsTopS, KeyValue32{uint32(i), sim})
+			} else if indexSimsTopS[len(indexSimsTopS)-1].Value > sim {
+				if len(indexSimsTopS) < cap(indexSimsTopS) {
 					indexSimsTopS = append(indexSimsTopS, KeyValue32{uint32(i), sim})
-				} else if indexSimsTopS[len(indexSimsTopS)-1].Value > sim {
-					if len(indexSimsTopS) < cap(indexSimsTopS) {
-						indexSimsTopS = append(indexSimsTopS, KeyValue32{uint32(i), sim})
-					}
-				} else {
-					for rank := 0; rank < len(indexSimsTopS); rank++ {
-						if sim >= indexSimsTopS[rank].Value {
-							if len(indexSimsTopS) < cap(indexSimsTopS) {
-								indexSimsTopS = append(indexSimsTopS, KeyValue32{0, 0})
-							}
-							copy(indexSimsTopS[rank+1:], indexSimsTopS[rank:])
-							indexSimsTopS[rank] = KeyValue32{uint32(i), sim}
-							break
+				}
+			} else {
+				for rank := 0; rank < len(indexSimsTopS); rank++ {
+					if sim >= indexSimsTopS[rank].Value {
+						if len(indexSimsTopS) < cap(indexSimsTopS) {
+							indexSimsTopS = append(indexSimsTopS, KeyValue32{0, 0})
 						}
+						copy(indexSimsTopS[rank+1:], indexSimsTopS[rank:])
+						indexSimsTopS[rank] = KeyValue32{uint32(i), sim}
+						break
 					}
 				}
 			}
-			simCounts[i][0] = 0.0
-			simCounts[i][1] = 0.0
 		}
 	}
 	return indexSimsTopS
