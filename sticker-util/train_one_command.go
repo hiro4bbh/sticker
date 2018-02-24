@@ -4,8 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"os"
-	"path/filepath"
 
 	"github.com/hiro4bbh/sticker"
 	"github.com/hiro4bbh/sticker/sticker-util/common"
@@ -44,6 +42,7 @@ func (cmd *TrainOneCommand) initializeFlagSet() {
 	cmd.flagSet.StringVar(&cmd.ClassifierTrainerName, "classifierTrainer", cmd.ClassifierTrainerName, "Specify the binary classifier trainer name")
 	cmd.flagSet.Var(&cmd.C, "C", "Specify the inverse of the penalty parameter for each binary classifier")
 	cmd.flagSet.Var(&cmd.Epsilon, "epsilon", "Specify the tolerance parameter for each binary classifier")
+	cmd.flagSet.BoolVar(&cmd.Help, "h", cmd.Help, "Show the help and exit")
 	cmd.flagSet.BoolVar(&cmd.Help, "help", cmd.Help, "Show the help and exit")
 	cmd.flagSet.UintVar(&cmd.T, "T", cmd.T, "Specify the maximum number of the target labels")
 	cmd.flagSet.Var(&cmd.TableNames, "table", "Specify the table names")
@@ -72,42 +71,24 @@ func (cmd *TrainOneCommand) Run() error {
 	params.ClassifierTrainerName = cmd.ClassifierTrainerName
 	params.C, params.Epsilon = float32(cmd.C), float32(cmd.Epsilon)
 	params.T = cmd.T
-	dsname := opts.GetDatasetName()
-	ds := &sticker.Dataset{
-		X: sticker.FeatureVectors{},
-		Y: sticker.LabelVectors{},
-	}
-	if len(cmd.TableNames.Values) == 0 {
-		return fmt.Errorf("specify table names")
-	}
-	for _, tblname := range cmd.TableNames.Values {
-		opts.Logger.Printf("loading table %q of dataset %q ...", tblname, dsname)
-		subds, err := opts.ReadDataset(tblname)
-		if err != nil {
-			return err
-		}
-		ds.X, ds.Y = append(ds.X, subds.X...), append(ds.Y, subds.Y...)
+	ds, err := opts.ReadDatasets(cmd.TableNames.Values, ^uint(0), false)
+	if err != nil {
+		return err
 	}
 	model, err := sticker.TrainLabelOne(ds, params, opts.DebugLogger)
 	if err != nil {
 		return err
 	}
-	joinedTblname := common.JoinTableNames(cmd.TableNames.Values)
 	filename := opts.LabelOne
 	if filename == "" {
-		filename = fmt.Sprintf("./labelone/%s.%s.T%d.labelone", dsname, joinedTblname, cmd.T)
+		filename = fmt.Sprintf("./labelone/%s.%s.T%d.labelone", opts.GetDatasetName(), common.JoinTableNames(cmd.TableNames.Values), cmd.T)
 		opts.LabelOne = filename
 	}
-	dirpath := filepath.Dir(filename)
-	if err := os.MkdirAll(dirpath, os.ModePerm); err != nil {
-		return fmt.Errorf("%s: %s", dirpath, err)
-	}
 	opts.Logger.Printf("writing the model to %s ...", filename)
-	file, err := os.Create(filename)
+	file, err := common.CreateWithDir(filename)
 	if err != nil {
-		return fmt.Errorf("%s: %s", filename, err)
+		return err
 	}
-	defer file.Close()
 	if err := sticker.EncodeLabelOne(model, file); err != nil {
 		return fmt.Errorf("%s: %s", filename, err)
 	}

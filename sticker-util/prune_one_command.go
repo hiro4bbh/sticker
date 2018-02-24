@@ -32,6 +32,8 @@ func (cmd *PruneOneCommand) initializeFlagSet() {
 	cmd.flagSet = flag.NewFlagSet("@pruneOne", flag.ContinueOnError)
 	cmd.flagSet.Usage = func() {}
 	cmd.flagSet.SetOutput(ioutil.Discard)
+	cmd.flagSet.BoolVar(&cmd.Help, "h", cmd.Help, "Show the help and exit")
+	cmd.flagSet.BoolVar(&cmd.Help, "help", cmd.Help, "Show the help and exit")
 	cmd.flagSet.UintVar(&cmd.T, "T", cmd.T, "Specify the maximum number of the round in the pruned .labelone model")
 }
 

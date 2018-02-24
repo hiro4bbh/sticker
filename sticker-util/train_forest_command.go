@@ -4,8 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"os"
-	"path/filepath"
 	"runtime"
 	"strings"
 
@@ -68,6 +66,7 @@ func (cmd *TrainForestCommand) initializeFlagSet() {
 	cmd.flagSet.Var(&cmd.C, "C", "Specify the inverse of the penalty for each binary classifier")
 	cmd.flagSet.Var(&cmd.Epsilon, "epsilon", "Specify the tolerance parameter for each binary classifier")
 	cmd.flagSet.StringVar(&cmd.FeatureSubSamplerName, "featureSubSampler", cmd.FeatureSubSamplerName, "Specify the dataset feature sub-sampler name")
+	cmd.flagSet.BoolVar(&cmd.Help, "h", cmd.Help, "Show the help and exit")
 	cmd.flagSet.BoolVar(&cmd.Help, "help", cmd.Help, "Show the help and exit")
 	cmd.flagSet.UintVar(&cmd.K, "K", cmd.K, "Specify the maximum number of the labels in each terminal leaf")
 	cmd.flagSet.UintVar(&cmd.MaxEntriesInLeaf, "maxEntriesInLeaf", cmd.MaxEntriesInLeaf, "Specify the maximum number of the entries in each leaf (best-effort)")
@@ -116,21 +115,9 @@ func (cmd *TrainForestCommand) Run() error {
 	default:
 		return fmt.Errorf("unknown subSampler: %s", cmd.SubSamplerName)
 	}
-	dsname := opts.GetDatasetName()
-	ds := &sticker.Dataset{
-		X: sticker.FeatureVectors{},
-		Y: sticker.LabelVectors{},
-	}
-	if len(cmd.TableNames.Values) == 0 {
-		return fmt.Errorf("specify table names")
-	}
-	for _, tblname := range cmd.TableNames.Values {
-		opts.Logger.Printf("loading table %q of dataset %q ...", tblname, dsname)
-		subds, err := opts.ReadDataset(tblname)
-		if err != nil {
-			return err
-		}
-		ds.X, ds.Y = append(ds.X, subds.X...), append(ds.Y, subds.Y...)
+	ds, err := opts.ReadDatasets(cmd.TableNames.Values, ^uint(0), false)
+	if err != nil {
+		return err
 	}
 	if cmd.NtopLabels > 0 {
 		opts.Logger.Printf("collecting label frequencies ...")
@@ -168,20 +155,15 @@ func (cmd *TrainForestCommand) Run() error {
 	if err != nil {
 		return err
 	}
-	joinedTblname := common.JoinTableNames(cmd.TableNames.Values)
 	filename := opts.LabelForest
 	if filename == "" {
-		rootpath := "./labelforest"
-		filename = filepath.Join(rootpath, fmt.Sprintf("%s.%s.N%d%s%d.labelforest", dsname, joinedTblname, cmd.Ntrees, strings.Title(string(cmd.SubSamplerName)), cmd.SubSampleSize))
-		if err := os.MkdirAll(rootpath, os.ModePerm); err != nil {
-			return fmt.Errorf("%s: %s", rootpath, err)
-		}
+		filename = fmt.Sprintf("./labelforest/%s.%s.N%d%s%d.labelforest", opts.GetDatasetName(), common.JoinTableNames(cmd.TableNames.Values), cmd.Ntrees, strings.Title(string(cmd.SubSamplerName)), cmd.SubSampleSize)
 		opts.LabelForest = filename
 	}
 	opts.Logger.Printf("writing the model to %s ...", filename)
-	file, err := os.Create(filename)
+	file, err := common.CreateWithDir(filename)
 	if err != nil {
-		return fmt.Errorf("%s: %s", filename, err)
+		return err
 	}
 	defer file.Close()
 	if err := plugin.EncodeLabelForest(forest, file); err != nil {

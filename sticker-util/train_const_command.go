@@ -4,8 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"os"
-	"path/filepath"
 
 	"github.com/hiro4bbh/sticker"
 	"github.com/hiro4bbh/sticker/sticker-util/common"
@@ -33,6 +31,7 @@ func (cmd *TrainConstCommand) initializeFlagSet() {
 	cmd.flagSet = flag.NewFlagSet("@trainConst", flag.ContinueOnError)
 	cmd.flagSet.Usage = func() {}
 	cmd.flagSet.SetOutput(ioutil.Discard)
+	cmd.flagSet.BoolVar(&cmd.Help, "h", cmd.Help, "Show the help and exit")
 	cmd.flagSet.BoolVar(&cmd.Help, "help", cmd.Help, "Show the help and exit")
 	cmd.flagSet.Var(&cmd.TableNames, "table", "Specify the table names")
 }
@@ -56,40 +55,23 @@ func (cmd *TrainConstCommand) Run() error {
 	}
 	opts := cmd.opts
 	opts.Logger.Printf("TrainConstCommands: %#v", cmd)
-	dsname := opts.GetDatasetName()
-	ds := &sticker.Dataset{
-		X: sticker.FeatureVectors{},
-		Y: sticker.LabelVectors{},
-	}
-	if len(cmd.TableNames.Values) == 0 {
-		return fmt.Errorf("specify table names")
-	}
-	for _, tblname := range cmd.TableNames.Values {
-		opts.Logger.Printf("loading table %q of dataset %q ...", tblname, dsname)
-		subds, err := opts.ReadDataset(tblname)
-		if err != nil {
-			return err
-		}
-		ds.X, ds.Y = append(ds.X, subds.X...), append(ds.Y, subds.Y...)
+	ds, err := opts.ReadDatasets(cmd.TableNames.Values, ^uint(0), false)
+	if err != nil {
+		return err
 	}
 	model, err := sticker.TrainLabelConst(ds, opts.DebugLogger)
 	if err != nil {
 		return err
 	}
-	joinedTblname := common.JoinTableNames(cmd.TableNames.Values)
 	filename := opts.LabelConst
 	if filename == "" {
-		filename = fmt.Sprintf("./labelconst/%s.%s.labelconst", dsname, joinedTblname)
+		filename = fmt.Sprintf("./labelconst/%s.%s.labelconst", opts.GetDatasetName(), common.JoinTableNames(cmd.TableNames.Values))
 		opts.LabelConst = filename
 	}
-	dirpath := filepath.Dir(filename)
-	if err := os.MkdirAll(dirpath, os.ModePerm); err != nil {
-		return fmt.Errorf("%s: %s", dirpath, err)
-	}
 	opts.Logger.Printf("writing the model to %s ...", filename)
-	file, err := os.Create(filename)
+	file, err := common.CreateWithDir(filename)
 	if err != nil {
-		return fmt.Errorf("%s: %s", filename, err)
+		return err
 	}
 	defer file.Close()
 	if err := sticker.EncodeLabelConst(model, file); err != nil {

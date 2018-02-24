@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math/bits"
-	"time"
 
 	"github.com/hiro4bbh/sticker"
 	"github.com/hiro4bbh/sticker/sticker-util/common"
@@ -15,6 +14,7 @@ import (
 type TestForestCommand struct {
 	Help        bool
 	Ks          common.OptionUints
+	N uint
 	OnlyResults bool
 	TableNames  common.OptionStrings
 	Weighted    bool
@@ -28,6 +28,7 @@ func NewTestForestCommand(opts *Options) *TestForestCommand {
 	return &TestForestCommand{
 		Help:        false,
 		Ks:          common.OptionUints{true, []uint{1, 3, 5}},
+		N: ^uint(0),
 		OnlyResults: false,
 		TableNames:  common.OptionStrings{true, []string{"test.txt"}},
 		Weighted:    false,
@@ -39,8 +40,10 @@ func (cmd *TestForestCommand) initializeFlagSet() {
 	cmd.flagSet = flag.NewFlagSet("@testForest", flag.ContinueOnError)
 	cmd.flagSet.Usage = func() {}
 	cmd.flagSet.SetOutput(ioutil.Discard)
+	cmd.flagSet.BoolVar(&cmd.Help, "h", cmd.Help, "Show the help and exit")
 	cmd.flagSet.BoolVar(&cmd.Help, "help", cmd.Help, "Show the help and exit")
 	cmd.flagSet.Var(&cmd.Ks, "K", "Specify the top-K values")
+	cmd.flagSet.UintVar(&cmd.N, "N", cmd.N, "Specify the maximum number of the tested entries")
 	cmd.flagSet.BoolVar(&cmd.OnlyResults, "onlyResults", cmd.OnlyResults, "Report only the test results")
 	cmd.flagSet.Var(&cmd.TableNames, "table", "Specify the table names")
 	cmd.flagSet.BoolVar(&cmd.Weighted, "weighted", cmd.Weighted, "Use the weighted forest")
@@ -65,78 +68,32 @@ func (cmd *TestForestCommand) Run() error {
 	}
 	opts := cmd.opts
 	opts.Logger.Printf("TestForestCommands: %#v", cmd)
-	dsname := opts.GetDatasetName()
-	ds := &sticker.Dataset{
-		X: sticker.FeatureVectors{},
-		Y: sticker.LabelVectors{},
-	}
-	if len(cmd.TableNames.Values) == 0 {
-		return fmt.Errorf("specify the table names")
-	}
-	for _, tblname := range cmd.TableNames.Values {
-		opts.Logger.Printf("loading table %q of dataset %q ...", tblname, dsname)
-		subds, err := opts.ReadDataset(tblname)
-		if err != nil {
-			return err
-		}
-		ds.X, ds.Y = append(ds.X, subds.X...), append(ds.Y, subds.Y...)
+	ds, err := opts.ReadDatasets(cmd.TableNames.Values, cmd.N, true)
+	if err != nil {
+		return err
 	}
 	opts.Logger.Printf("loading .labelforest model from %q ...", opts.LabelForest)
 	forest, err := common.ReadLabelForest(opts.LabelForest)
 	if err != nil {
 		return err
 	}
-	maxK := uint(0)
-	for _, K := range cmd.Ks.Values {
-		if maxK < K {
-			maxK = K
-		}
-	}
-	inferenceStartTime := time.Now()
+	reporter := common.NewResultsReporter(ds.Y, cmd.Ks.Values)
+	reporter.ResetTimer()
 	var leafIdsSlice [][]uint64
-	var Y sticker.LabelVectors
+	var Yhat sticker.LabelVectors
 	if cmd.Weighted {
 		opts.Logger.Printf("classifying all entries with weights ...")
 		var weightsSlice [][]float32
 		leafIdsSlice, weightsSlice = forest.ClassifyAllWithWeight(ds.X)
-		opts.Logger.Printf("predicting top-%d labels with weights ...", maxK)
-		Y = forest.PredictAllWithWeight(leafIdsSlice, weightsSlice, maxK)
-		inferenceEndTime := time.Now()
-		inferenceTime := inferenceEndTime.Sub(inferenceStartTime)
-		opts.Logger.Printf("finished inference on %d entries in %s (%s/entry)", ds.Size(), inferenceTime, time.Duration(inferenceTime.Nanoseconds()/int64(ds.Size())))
+		opts.Logger.Printf("predicting top-%d labels with weights ...", reporter.MaxK())
+		Yhat = forest.PredictAllWithWeight(leafIdsSlice, weightsSlice, reporter.MaxK())
 	} else {
 		opts.Logger.Printf("classifying all entries ...")
 		leafIdsSlice = forest.ClassifyAll(ds.X)
-		opts.Logger.Printf("predicting top-%d labels ...", maxK)
-		Y = forest.PredictAll(leafIdsSlice, maxK)
-		inferenceEndTime := time.Now()
-		inferenceTime := inferenceEndTime.Sub(inferenceStartTime)
-		opts.Logger.Printf("finished inference on %d entries in %s (%s/entry)", ds.Size(), inferenceTime, time.Duration(inferenceTime.Nanoseconds()/int64(ds.Size())))
+		opts.Logger.Printf("predicting top-%d labels ...", reporter.MaxK())
+		Yhat = forest.PredictAll(leafIdsSlice, reporter.MaxK())
 	}
-	for _, K := range cmd.Ks.Values {
-		pKs := sticker.ReportPrecision(ds.Y, K, Y)
-		indices := make([]uint64, len(pKs))
-		pKavg := float32(0.0)
-		for i, pK := range pKs {
-			pKavg += pK
-			indices[i] = uint64(i)
-		}
-		pKavg /= float32(len(ds.Y))
-		mpKs := sticker.ReportMaxPrecision(ds.Y, K)
-		mpKavg := float32(0.0)
-		for _, mpK := range mpKs {
-			mpKavg += mpK
-		}
-		mpKavg /= float32(len(ds.Y))
-		fmt.Fprintf(opts.OutputWriter, "Average Precision@%d: %.4g%% (max: %.4g%%)\n", K, pKavg*100, mpKavg*100)
-		nKs := sticker.ReportNDCG(ds.Y, K, Y)
-		nKavg := float32(0.0)
-		for _, nK := range nKs {
-			nKavg += nK
-		}
-		nKavg /= float32(len(ds.Y))
-		fmt.Fprintf(opts.OutputWriter, "Average nDCG@%d: %.4g%% (max: 100%%)\n", K, nKavg*100)
-	}
+	reporter.Report(Yhat, opts.OutputWriter)
 	if cmd.OnlyResults {
 		return nil
 	}

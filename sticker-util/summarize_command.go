@@ -41,6 +41,7 @@ func (cmd *SummarizeCommand) initializeFlagSet() {
 	cmd.flagSet.Usage = func() {}
 	cmd.flagSet.SetOutput(ioutil.Discard)
 	cmd.flagSet.StringVar(&cmd.Addr, "addr", cmd.Addr, "Specify the HTTP server address")
+	cmd.flagSet.BoolVar(&cmd.Help, "h", cmd.Help, "Show the help and exit")
 	cmd.flagSet.BoolVar(&cmd.Help, "help", cmd.Help, "Show the help and exit")
 	cmd.flagSet.StringVar(&cmd.TableName, "table", cmd.TableName, "Specify the table name")
 }

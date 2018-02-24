@@ -43,6 +43,7 @@ func (cmd *ShuffleCommand) initializeFlagSet() {
 	cmd.flagSet = flag.NewFlagSet("@shuffle", flag.ContinueOnError)
 	cmd.flagSet.Usage = func() {}
 	cmd.flagSet.SetOutput(ioutil.Discard)
+	cmd.flagSet.BoolVar(&cmd.Help, "h", cmd.Help, "Show the help and exit")
 	cmd.flagSet.BoolVar(&cmd.Help, "help", cmd.Help, "Show the help and exit")
 	cmd.flagSet.Var(&cmd.Ks, "K", "Specify the K values for reporting the attainable precision@K")
 	cmd.flagSet.BoolVar(&cmd.ReportOnly, "reportOnly", cmd.ReportOnly, "Report only, and do not write the splitted tables")

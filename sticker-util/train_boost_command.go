@@ -4,10 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"os"
-	"path/filepath"
 
-	"github.com/hiro4bbh/sticker"
 	"github.com/hiro4bbh/sticker/plugin"
 	"github.com/hiro4bbh/sticker/sticker-util/common"
 )
@@ -51,6 +48,7 @@ func (cmd *TrainBoostCommand) initializeFlagSet() {
 	cmd.flagSet.StringVar(&cmd.RankerTrainerName, "rankerTrainer", cmd.RankerTrainerName, "Specify the binary ranker trainer name")
 	cmd.flagSet.Var(&cmd.C, "C", "Specify the inverse of the penalty parameter for each binary classifier")
 	cmd.flagSet.Var(&cmd.Epsilon, "epsilon", "Specify the tolerance parameter for each binary classifier")
+	cmd.flagSet.BoolVar(&cmd.Help, "h", cmd.Help, "Show the help and exit")
 	cmd.flagSet.BoolVar(&cmd.Help, "help", cmd.Help, "Show the help and exit")
 	cmd.flagSet.UintVar(&cmd.NegativeSampleSize, "negativeSampleSize", cmd.NegativeSampleSize, "Specify the size of each negative sample for Multi-Label Ranking Hinge Boosting (specify 0 for Multi-Label Hinge Boosting)")
 	cmd.flagSet.UintVar(&cmd.PainterK, "painterK", cmd.PainterK, "Specify the maximum number of the painted target label")
@@ -84,40 +82,23 @@ func (cmd *TrainBoostCommand) Run() error {
 	params.NegativeSampleSize = cmd.NegativeSampleSize
 	params.PainterK, params.PainterName = cmd.PainterK, cmd.PainterName
 	params.T = cmd.T
-	dsname := opts.GetDatasetName()
-	ds := &sticker.Dataset{
-		X: sticker.FeatureVectors{},
-		Y: sticker.LabelVectors{},
-	}
-	if len(cmd.TableNames.Values) == 0 {
-		return fmt.Errorf("specify table names")
-	}
-	for _, tblname := range cmd.TableNames.Values {
-		opts.Logger.Printf("loading table %q of dataset %q ...", tblname, dsname)
-		subds, err := opts.ReadDataset(tblname)
-		if err != nil {
-			return err
-		}
-		ds.X, ds.Y = append(ds.X, subds.X...), append(ds.Y, subds.Y...)
+	ds, err := opts.ReadDatasets(cmd.TableNames.Values, ^uint(0), false)
+	if err != nil {
+		return err
 	}
 	model, err := plugin.TrainLabelBoost(ds, params, opts.DebugLogger)
 	if err != nil {
 		return err
 	}
-	joinedTblname := common.JoinTableNames(cmd.TableNames.Values)
 	filename := opts.LabelBoost
 	if filename == "" {
-		filename = fmt.Sprintf("./labelboost/%s.%s.T%d.labelboost", dsname, joinedTblname, cmd.T)
+		filename = fmt.Sprintf("./labelboost/%s.%s.T%d.labelboost", opts.GetDatasetName(), common.JoinTableNames(cmd.TableNames.Values), cmd.T)
 		opts.LabelBoost = filename
 	}
-	dirpath := filepath.Dir(filename)
-	if err := os.MkdirAll(dirpath, os.ModePerm); err != nil {
-		return fmt.Errorf("%s: %s", dirpath, err)
-	}
 	opts.Logger.Printf("writing the model to %s ...", filename)
-	file, err := os.Create(filename)
+	file, err := common.CreateWithDir(filename)
 	if err != nil {
-		return fmt.Errorf("%s: %s", filename, err)
+		return err
 	}
 	defer file.Close()
 	if err := plugin.EncodeLabelBoost(model, file); err != nil {

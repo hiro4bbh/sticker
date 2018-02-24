@@ -1,14 +1,10 @@
 package main
 
 import (
-	"encoding/gob"
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"os"
-	"time"
 
-	"github.com/hiro4bbh/sticker"
 	"github.com/hiro4bbh/sticker/sticker-util/common"
 )
 
@@ -16,7 +12,7 @@ import (
 type TestConstCommand struct {
 	Help       bool
 	Ks         common.OptionUints
-	Restore    bool
+	N uint
 	TableNames common.OptionStrings
 
 	Result map[string]interface{}
@@ -30,7 +26,7 @@ func NewTestConstCommand(opts *Options) *TestConstCommand {
 	return &TestConstCommand{
 		Help:       false,
 		Ks:         common.OptionUints{true, []uint{1, 3, 5}},
-		Restore:    false,
+		N: ^uint(0),
 		TableNames: common.OptionStrings{true, []string{"test.txt"}},
 		opts:       opts,
 	}
@@ -40,9 +36,10 @@ func (cmd *TestConstCommand) initializeFlagSet() {
 	cmd.flagSet = flag.NewFlagSet("@testConst", flag.ContinueOnError)
 	cmd.flagSet.Usage = func() {}
 	cmd.flagSet.SetOutput(ioutil.Discard)
+	cmd.flagSet.BoolVar(&cmd.Help, "h", cmd.Help, "Show the help and exit")
 	cmd.flagSet.BoolVar(&cmd.Help, "help", cmd.Help, "Show the help and exit")
 	cmd.flagSet.Var(&cmd.Ks, "K", "Specify the top-K values")
-	cmd.flagSet.BoolVar(&cmd.Restore, "restore", cmd.Restore, "Restore the test result if true")
+	cmd.flagSet.UintVar(&cmd.N, "N", cmd.N, "Specify the maximum number of the tested entries")
 	cmd.flagSet.Var(&cmd.TableNames, "table", "Specify the table names")
 }
 
@@ -65,95 +62,20 @@ func (cmd *TestConstCommand) Run() error {
 	}
 	opts := cmd.opts
 	opts.Logger.Printf("TestConstCommands: %#v", cmd)
-	dsname := opts.GetDatasetName()
-	tblname := common.JoinTableNames(cmd.TableNames.Values)
-	restoreName := fmt.Sprintf("%s.testConst.%s.%s.bin", opts.LabelConst, dsname, tblname)
-	if cmd.Restore {
-		opts.Logger.Printf("restroing the dumped test result in %q ...", restoreName)
-		f, err := os.Open(restoreName)
-		if err != nil {
-			return err
-		}
-		defer f.Close()
-		return gob.NewDecoder(f).Decode(&cmd.Result)
+	ds, err := opts.ReadDatasets(cmd.TableNames.Values, cmd.N, true)
+	if err != nil {
+		return err
 	}
-	ds := &sticker.Dataset{
-		X: sticker.FeatureVectors{},
-		Y: sticker.LabelVectors{},
-	}
-	if len(cmd.TableNames.Values) == 0 {
-		return fmt.Errorf("specify the table names")
-	}
-	for _, tblname := range cmd.TableNames.Values {
-		opts.Logger.Printf("loading table %q of dataset %q ...", tblname, dsname)
-		subds, err := opts.ReadDataset(tblname)
-		if err != nil {
-			return err
-		}
-		ds.X, ds.Y = append(ds.X, subds.X...), append(ds.Y, subds.Y...)
-	}
-	n := ds.Size()
 	opts.Logger.Printf("loading .labelconst model from %q ...", opts.LabelConst)
 	model, err := common.ReadLabelConst(opts.LabelConst)
 	if err != nil {
 		return err
 	}
-	maxK := uint(0)
-	for _, K := range cmd.Ks.Values {
-		if maxK < K {
-			maxK = K
-		}
-	}
-	maxAvgPrecisions := make([]float32, 0, len(cmd.Ks.Values))
-	for _, K := range cmd.Ks.Values {
-		maxPrecisionKs := sticker.ReportMaxPrecision(ds.Y, K)
-		maxSumPrecisionK := float32(0.0)
-		for _, maxPrecisionKi := range maxPrecisionKs {
-			maxSumPrecisionK += maxPrecisionKi
-		}
-		maxAvgPrecisions = append(maxAvgPrecisions, maxSumPrecisionK/float32(len(ds.Y)))
-	}
-	inferenceStartTime := time.Now()
-	opts.Logger.Printf("predicting top-%d labels ...", maxK)
-	Y := model.PredictAll(ds.X, maxK)
-	inferenceEndTime := time.Now()
-	inferenceTime := inferenceEndTime.Sub(inferenceStartTime)
-	inferenceTimePerEntry := time.Duration(inferenceTime.Nanoseconds() / int64(n)).Round(time.Microsecond)
-	fmt.Fprintf(opts.OutputWriter, "finished inference on %d entries in %s (about %s/entry)\n", n, inferenceTime, inferenceTimePerEntry)
-	precisions, nDCGs := make([]float32, 0, len(cmd.Ks.Values)), make([]float32, 0, len(cmd.Ks.Values))
-	for iK, K := range cmd.Ks.Values {
-		precisionKs := sticker.ReportPrecision(ds.Y, K, Y)
-		sumPrecisionK := float32(0.0)
-		for _, precisionKi := range precisionKs {
-			sumPrecisionK += precisionKi
-		}
-		avgPrecisionK := sumPrecisionK / float32(len(ds.Y))
-		precisions = append(precisions, avgPrecisionK)
-		nDCGKs := sticker.ReportNDCG(ds.Y, K, Y)
-		sumNDCGK := float32(0.0)
-		for _, nDCGKi := range nDCGKs {
-			sumNDCGK += nDCGKi
-		}
-		avgNDCGK := sumNDCGK / float32(len(ds.Y))
-		nDCGs = append(nDCGs, avgNDCGK)
-		fmt.Fprintf(opts.OutputWriter, "T=Precision@%d=%-5.4g%%/%-5.4g%%, nDCG@%d=%-5.4g%%\n", K, avgPrecisionK*100, maxAvgPrecisions[iK]*100, K, avgNDCGK*100)
-	}
-	cmd.Result = map[string]interface{}{
-		"Ks":                    cmd.Ks.Values,
-		"maxPrecisions":         maxAvgPrecisions,
-		"nentries":              n,
-		"inferenceTime":         fmt.Sprintf("%s", inferenceTime),
-		"inferenceTimePerEntry": fmt.Sprintf("%s", inferenceTimePerEntry),
-		"precisions":            precisions,
-		"nDCGs":                 nDCGs,
-	}
-	opts.Logger.Printf("dumping the test result to %q ...", restoreName)
-	f, err := os.Create(restoreName)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	return gob.NewEncoder(f).Encode(cmd.Result)
+	reporter := common.NewResultsReporter(ds.Y, cmd.Ks.Values)
+	opts.Logger.Printf("predicting top-%d labels ...", reporter.MaxK())
+	reporter.ResetTimer()
+	reporter.Report(model.PredictAll(ds.X, reporter.MaxK()), opts.OutputWriter)
+	return nil
 }
 
 // ShowHelp shows the help.

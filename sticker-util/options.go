@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -158,6 +159,7 @@ func (opts *Options) initializeFlagSet() {
 	opts.flagSet.StringVar(&opts.CPUProfile, "cpuprofile", opts.CPUProfile, "Specify the CPU profile filename")
 	opts.flagSet.BoolVar(&opts.Debug, "debug", opts.Debug, "Turn on debug logging")
 	opts.flagSet.StringVar(&opts.FeatureMapName, "featureMap", opts.FeatureMapName, "Specify the feature map filename")
+	opts.flagSet.BoolVar(&opts.Help, "h", opts.Help, "Show the help and exit")
 	opts.flagSet.BoolVar(&opts.Help, "help", opts.Help, "Show the help and exit")
 	opts.flagSet.StringVar(&opts.HTTPResource, "httpResource", opts.HTTPResource, "Specify the HTTP server resource root path")
 	opts.flagSet.StringVar(&opts.LabelBoost, "labelboost", opts.LabelBoost, "Specify the .labelboost filename")
@@ -359,6 +361,40 @@ func (opts *Options) ReadDataset(tblname string) (*sticker.Dataset, error) {
 	ds, err := sticker.ReadTextDataset(file)
 	if err != nil {
 		return nil, fmt.Errorf("ReadDataset: %s: %s", filename, err)
+	}
+	return ds, nil
+}
+
+// ReadDatasets reads the multiple datasets with at most maxentries data entries.
+// If sampling is true, then the data entries are randomly sampled without replacement.
+//
+// This function returns an error in reading the datasets, or tblnames is empty.
+func (opts *Options) ReadDatasets(tblnames []string, maxentries uint, sampling bool) (*sticker.Dataset, error) {
+	dsname := opts.GetDatasetName()
+	ds := &sticker.Dataset{
+		X: sticker.FeatureVectors{},
+		Y: sticker.LabelVectors{},
+	}
+	if len(tblnames) == 0 {
+		return nil, fmt.Errorf("specify the table names")
+	}
+	for _, tblname := range tblnames {
+		opts.Logger.Printf("loading table %q of dataset %q ...", tblname, dsname)
+		subds, err := opts.ReadDataset(tblname)
+		if err != nil {
+			return nil, err
+		}
+		ds.X, ds.Y = append(ds.X, subds.X...), append(ds.Y, subds.Y...)
+	}
+	if sampling {
+		rng := rand.New(rand.NewSource(0))
+		for i := 0; i < int(maxentries); i++ {
+			j := i + rng.Intn(ds.Size()-i)
+			ds.X[i], ds.X[j], ds.Y[i], ds.Y[j] = ds.X[j], ds.X[i], ds.Y[j], ds.Y[i]
+		}
+	}
+	if maxentries < uint(ds.Size()) {
+		ds.X, ds.Y = ds.X[:maxentries], ds.Y[:maxentries]
 	}
 	return ds, nil
 }

@@ -13,13 +13,13 @@ type SimCountPair struct {
 	Count uint32
 }
 
-// LabelNearest is the sparse weighted nearest neighbourhood.
+// LabelNearest is the sparse weighted nearest neighborhood.
 // Sparse means in the following 3 reasons:
-//   (i) The similarity used in constructing the nearest neighbourhood defined by the inner-product on the features activated in the given entry.
+//   (i) The similarity used in constructing the nearest neighborhood defined by the inner-product on the features activated in the given entry.
 //   (ii) The positive labels assigned to the entries in the training dataset are only used for averaging.
 //   (iii) The entries in the training dataset whose inner-product is not positive are not used.
 //
-// LabelNearest is only the optimized data structure of the training dataset for searching nearest neighbourhood.
+// LabelNearest is only the optimized data structure of the training dataset for searching nearest neighborhood.
 type LabelNearest struct {
 	// NfeaturesList is the slice of the number of features contained in each training data entry.
 	NfeaturesList []float32
@@ -203,10 +203,10 @@ func (model *LabelNearest) FindNearests(x FeatureVector, S uint, beta float32) K
 	return indexSimsTopS
 }
 
-// Predict returns the results for the given data entry x with the sparse S-nearest neighbourhood.
+// Predict returns the results for the given data entry x with the sparse S-nearest neighborhood.
 // The returned results are the top-K labels, the label histogram, and the slice of the data entry index and its similarity.
 //
-// alpha is the smoothing parameter for weighting the votes by each neighbour.
+// alpha is the smoothing parameter for weighting the votes by each neighbor.
 // beta is the smoothing parameter for balancing the Jaccard similarity and the cosine similarity.
 func (model *LabelNearest) Predict(x FeatureVector, K, S uint, alpha, beta float32) (LabelVector, map[uint32]float32, KeyValues32) {
 	indexSimsTopS := model.FindNearests(x, S, beta)
@@ -225,7 +225,7 @@ func (model *LabelNearest) Predict(x FeatureVector, K, S uint, alpha, beta float
 	return RankTopK(labelHist, K), labelHist, indexSimsTopS
 }
 
-// PredictAll returns the top-K labels for each data entry in X with the sparse S-nearest neighbourhood.
+// PredictAll returns the top-K labels for each data entry in X with the sparse S-nearest neighborhood.
 // See Predict for hyper-parameter details.
 func (model *LabelNearest) PredictAll(X FeatureVectors, K, S uint, alpha, beta float32) LabelVectors {
 	Y_ := make(LabelVectors, 0, len(X))

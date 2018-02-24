@@ -34,6 +34,7 @@ func (cmd *InspectForestCommand) initializeFlagSet() {
 	cmd.flagSet = flag.NewFlagSet("@inspectForest", flag.ContinueOnError)
 	cmd.flagSet.Usage = func() {}
 	cmd.flagSet.SetOutput(ioutil.Discard)
+	cmd.flagSet.BoolVar(&cmd.Help, "h", cmd.Help, "Show the help and exit")
 	cmd.flagSet.BoolVar(&cmd.Help, "help", cmd.Help, "Show the help and exit")
 	cmd.flagSet.StringVar(&cmd.Addr, "addr", cmd.Addr, "Specify the HTTP server address")
 }

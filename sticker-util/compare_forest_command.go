@@ -33,6 +33,7 @@ func (cmd *CompareForestCommand) initializeFlagSet() {
 	cmd.flagSet = flag.NewFlagSet("@compareForest", flag.ContinueOnError)
 	cmd.flagSet.Usage = func() {}
 	cmd.flagSet.SetOutput(ioutil.Discard)
+	cmd.flagSet.BoolVar(&cmd.Help, "h", cmd.Help, "Show the help and exit")
 	cmd.flagSet.BoolVar(&cmd.Help, "help", cmd.Help, "Show the help and exit")
 	cmd.flagSet.StringVar(&cmd.LabelForest, "labelforest", cmd.LabelForest, "Specify the compared .labelforest file name")
 	cmd.flagSet.Var(&cmd.TableNames, "table", "Specify the table names")
