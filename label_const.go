@@ -85,11 +85,11 @@ func (model *LabelConst) GobEncode() ([]byte, error) {
 // PredictAll returns the top-K labels for each data entry in X.
 func (model *LabelConst) PredictAll(X FeatureVectors, K uint) LabelVectors {
 	predictedLabels := make(LabelVector, K)
-	K_ := K
-	if K_ > uint(len(model.LabelList)) {
-		K_ = uint(len(model.LabelList))
+	Kmax := K
+	if Kmax > uint(len(model.LabelList)) {
+		Kmax = uint(len(model.LabelList))
 	}
-	copy(predictedLabels, model.LabelList[:K_])
+	copy(predictedLabels, model.LabelList[:Kmax])
 	for rank := uint(len(model.LabelList)); rank < K; rank++ {
 		predictedLabels[rank] = ^uint32(0)
 	}

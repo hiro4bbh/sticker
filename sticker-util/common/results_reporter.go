@@ -42,7 +42,7 @@ func NewResultsReporter(Y sticker.LabelVectors, Ks []uint) *ResultsReporter {
 	}
 }
 
-// AvgMaxPKs returns the average max Precision@Ks.
+// AvgMaxPrecisionKs returns the average max Precision@Ks.
 func (reporter *ResultsReporter) AvgMaxPrecisionKs() map[uint]float32 {
 	if reporter.avgMaxPKs == nil {
 		reporter.avgMaxPKs = make(map[uint]float32)
@@ -58,7 +58,7 @@ func (reporter *ResultsReporter) AvgMaxPrecisionKs() map[uint]float32 {
 	return reporter.avgMaxPKs
 }
 
-// InferenceTime returns the total and average inference time between the ResetTimer time and the Report time per entry.
+// InferenceTimes returns the total and average inference time between the ResetTimer time and the Report time per entry.
 func (reporter *ResultsReporter) InferenceTimes() (time.Duration, time.Duration) {
 	inferenceTime := reporter.lastEndTime.Sub(reporter.startTime)
 	return inferenceTime, time.Duration(inferenceTime.Nanoseconds() / int64(reporter.Nprocesseds())).Round(time.Microsecond)

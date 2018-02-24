@@ -52,15 +52,15 @@ func TestTrainLabelOne(t *testing.T) {
 	params.T = 5
 	model := goassert.New(t).SucceedNew(TrainLabelOne(ds, params, nil)).(*LabelOne)
 	goassert.New(t, uint(3)).Equal(model.Nrounds())
-	Y_K2T5, Y_K5T5, Y_K2T2 := make(LabelVectors, 2*n), make(LabelVectors, 2*n), make(LabelVectors, 2*n)
+	YhatK2T5, YhatK5T5, YhatK2T2 := make(LabelVectors, 2*n), make(LabelVectors, 2*n), make(LabelVectors, 2*n)
 	for i := 0; i < n; i++ {
-		Y_K2T5[2*i], Y_K2T5[2*i+1] = LabelVector{0, 1}, LabelVector{0, 2}
-		Y_K5T5[2*i], Y_K5T5[2*i+1] = LabelVector{0, 1, 2, ^uint32(0), ^uint32(0)}, LabelVector{0, 2, 1, ^uint32(0), ^uint32(0)}
-		Y_K2T2[2*i], Y_K2T2[2*i+1] = LabelVector{0, 1}, LabelVector{0, 1}
+		YhatK2T5[2*i], YhatK2T5[2*i+1] = LabelVector{0, 1}, LabelVector{0, 2}
+		YhatK5T5[2*i], YhatK5T5[2*i+1] = LabelVector{0, 1, 2, ^uint32(0), ^uint32(0)}, LabelVector{0, 2, 1, ^uint32(0), ^uint32(0)}
+		YhatK2T2[2*i], YhatK2T2[2*i+1] = LabelVector{0, 1}, LabelVector{0, 1}
 	}
-	goassert.New(t, Y_K2T5).Equal(model.PredictAll(ds.X, 2, 5))
-	goassert.New(t, Y_K5T5).Equal(model.PredictAll(ds.X, 5, 5))
-	goassert.New(t, Y_K2T2).Equal(model.PredictAll(ds.X, 2, 2))
+	goassert.New(t, YhatK2T5).Equal(model.PredictAll(ds.X, 2, 5))
+	goassert.New(t, YhatK5T5).Equal(model.PredictAll(ds.X, 5, 5))
+	goassert.New(t, YhatK2T2).Equal(model.PredictAll(ds.X, 2, 2))
 	// debug logger is tested in TestDecodeEncodeLabelOne.
 }
 

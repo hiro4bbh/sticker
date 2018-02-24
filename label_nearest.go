@@ -60,9 +60,9 @@ func TrainLabelNearest(ds *Dataset, debug *log.Logger) (*LabelNearest, error) {
 	}
 	labelVectors := make(LabelVectors, 0, len(ds.Y))
 	for _, yi := range ds.Y {
-		yi_ := make(LabelVector, len(yi))
-		copy(yi_, yi)
-		labelVectors = append(labelVectors, yi_)
+		yihat := make(LabelVector, len(yi))
+		copy(yihat, yi)
+		labelVectors = append(labelVectors, yihat)
 	}
 	return &LabelNearest{
 		NfeaturesList:    nfeaturesList,
@@ -228,10 +228,10 @@ func (model *LabelNearest) Predict(x FeatureVector, K, S uint, alpha, beta float
 // PredictAll returns the top-K labels for each data entry in X with the sparse S-nearest neighborhood.
 // See Predict for hyper-parameter details.
 func (model *LabelNearest) PredictAll(X FeatureVectors, K, S uint, alpha, beta float32) LabelVectors {
-	Y_ := make(LabelVectors, 0, len(X))
-	for _, x := range X {
-		y_, _, _ := model.Predict(x, K, S, alpha, beta)
-		Y_ = append(Y_, y_)
+	Yhat := make(LabelVectors, 0, len(X))
+	for _, xi := range X {
+		yihat, _, _ := model.Predict(xi, K, S, alpha, beta)
+		Yhat = append(Yhat, yihat)
 	}
-	return Y_
+	return Yhat
 }

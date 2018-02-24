@@ -55,8 +55,8 @@ func TestLabelTreeClassify_Predict(t *testing.T) {
 	goassert.New(t, sticker.LabelVectors{sticker.LabelVector{}, sticker.LabelVector{}, sticker.LabelVector{}}).Equal(tree.PredictAll(leafIdSlice, 0))
 	goassert.New(t, sticker.LabelVectors{sticker.LabelVector{0}, sticker.LabelVector{0}, sticker.LabelVector{1}}).Equal(tree.PredictAll(leafIdSlice, 1))
 	goassert.New(t, sticker.LabelVectors{sticker.LabelVector{0, ^uint32(0)}, sticker.LabelVector{0, ^uint32(0)}, sticker.LabelVector{1, ^uint32(0)}}).Equal(tree.PredictAll(leafIdSlice, 2))
-	leafIdSlice_, weightSlice := tree.ClassifyAllWithWeight(X)
-	goassert.New(t, leafIdSlice).Equal(leafIdSlice_)
+	leafIdSliceWithWeight, weightSlice := tree.ClassifyAllWithWeight(X)
+	goassert.New(t, leafIdSlice).Equal(leafIdSliceWithWeight)
 	goassert.New(t, []float32{1, 1, 1}).Equal(weightSlice)
 }
 
@@ -228,8 +228,8 @@ func TestLabelForestClassify_Predict(t *testing.T) {
 	}
 	leafIdsSlice := forest.ClassifyAll(X)
 	goassert.New(t, [][]uint64{{0x2, 0x2, 0x2}, {0x2, 0x2, 0x3}, {0x2, 0x3, 0x3}}).Equal(leafIdsSlice)
-	leafIdsSlice_, weightsSlice := forest.ClassifyAllWithWeight(X)
-	goassert.New(t, leafIdsSlice).Equal(leafIdsSlice_)
+	leafIdsSliceWithWeight, weightsSlice := forest.ClassifyAllWithWeight(X)
+	goassert.New(t, leafIdsSlice).Equal(leafIdsSliceWithWeight)
 	goassert.New(t, [][]float32{{1, 1, 1}, {1, 1, 1}, {1, 1, 2}}).Equal(weightsSlice)
 	goassert.New(t, sticker.LabelVectors{sticker.LabelVector{}, sticker.LabelVector{}, sticker.LabelVector{}}).Equal(forest.PredictAll(leafIdsSlice, 0))
 	goassert.New(t, sticker.LabelVectors{sticker.LabelVector{0}, sticker.LabelVector{9}, sticker.LabelVector{9}}).Equal(forest.PredictAll(leafIdsSlice, 1))

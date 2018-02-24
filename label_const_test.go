@@ -23,11 +23,11 @@ func TestTrainLabelConst(t *testing.T) {
 	model := goassert.New(t).SucceedNew(TrainLabelConst(ds, nil)).(*LabelConst)
 	goassert.New(t, LabelVector{1, 0, 2}).Equal(model.LabelList)
 	goassert.New(t, []float32{200, 100, 100}).Equal(model.LabelFreqList)
-	Y_ := make(LabelVectors, 2*n)
+	Yhat := make(LabelVectors, 2*n)
 	for i := 0; i < n; i++ {
-		Y_[2*i], Y_[2*i+1] = LabelVector{1, 0, 2, ^uint32(0)}, LabelVector{1, 0, 2, ^uint32(0)}
+		Yhat[2*i], Yhat[2*i+1] = LabelVector{1, 0, 2, ^uint32(0)}, LabelVector{1, 0, 2, ^uint32(0)}
 	}
-	goassert.New(t, Y_).Equal(model.PredictAll(ds.X, 4))
+	goassert.New(t, Yhat).Equal(model.PredictAll(ds.X, 4))
 	// Test encoder/decoder.
 	var buf bytes.Buffer
 	goassert.New(t, "LabelConst should be encoded with EncodeLabelConst").ExpectError(gob.NewEncoder(&buf).Encode(model))

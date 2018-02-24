@@ -116,7 +116,7 @@ func (cmd *TestOneCommand) Run() error {
 		}
 		opts.Logger.Printf("predicting top-%d labels ...", reporter.MaxK())
 		reporter.ResetTimer()
-		opts.Logger.Printf("predicting top-%d labels with first %d rounds ...", reporter.MaxK, T)
+		opts.Logger.Printf("predicting top-%d labels with first %d rounds ...", reporter.MaxK(), T)
 		reporter.ResetTimer()
 		avgPKs, avgNKs := reporter.Report(model.PredictAll(ds.X, reporter.MaxK(), T), opts.OutputWriter)
 		inferenceTime, inferenceTimePerEntry := reporter.InferenceTimes()

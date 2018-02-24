@@ -294,11 +294,11 @@ func (bc *BinaryClassifier) PredictAndCountAll(X FeatureVectors) ([]float32, []u
 }
 
 // ReportPerformance returns the true-negative/false-negative/false-positive/true-positive and the predicted values on X.
-func (bc *BinaryClassifier) ReportPerformance(X FeatureVectors, Y []bool) (tn, fn, fp, tp uint, predVals []float32, Y_ []bool) {
+func (bc *BinaryClassifier) ReportPerformance(X FeatureVectors, Y []bool) (tn, fn, fp, tp uint, predVals []float32, Yhat []bool) {
 	predVals = bc.PredictAll(X)
-	Y_ = ClassifyAllToBinaryClass(predVals)
-	for i, Y_i := range Y_ {
-		if Y_i {
+	Yhat = ClassifyAllToBinaryClass(predVals)
+	for i, yihat := range Yhat {
+		if yihat {
 			if Y[i] {
 				tp++
 			} else {
