@@ -84,10 +84,10 @@ func LeftRightAssigner_nDCG(ds *sticker.Dataset, delta []bool, debug *log.Logger
 			vn, vp := float32(0.0), float32(0.0)
 			for _, label := range yi {
 				if rank, ok := leftLabelInvRanks[label]; ok {
-					vn += 1.0 / sticker.Log2_32(1.0+float32(rank))
+					vn += 1.0 / sticker.LogBinary32(1.0+float32(rank))
 				}
 				if rank, ok := rightLabelInvRanks[label]; ok {
-					vp += 1.0 / sticker.Log2_32(1.0+float32(rank))
+					vp += 1.0 / sticker.LogBinary32(1.0+float32(rank))
 				}
 			}
 			if vn < vp {

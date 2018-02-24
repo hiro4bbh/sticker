@@ -23,7 +23,7 @@ func IdealDCG(K uint) float32 {
 	if !ok {
 		mutexValuesOfIdealDCG.Lock()
 		for k := uint(1); k <= K; k++ {
-			I += 1.0 / Log2_32(1.0+float32(k))
+			I += 1.0 / LogBinary32(1.0+float32(k))
 		}
 		valuesOfIdealDCG[K] = I
 		mutexValuesOfIdealDCG.Unlock()
@@ -51,15 +51,15 @@ func RankTopK(labelDist SparseVector, K uint) LabelVector {
 			labelFreqs = append(labelFreqs, KeyValue32{label, freq})
 		}
 		sort.Sort(sort.Reverse(labelFreqs))
-		K_ := K
-		if K_ > uint(len(labelFreqs)) {
-			K_ = uint(len(labelFreqs))
+		Kmax := K
+		if Kmax > uint(len(labelFreqs)) {
+			Kmax = uint(len(labelFreqs))
 		}
 		y := make(LabelVector, K)
-		for i := 0; i < int(K_); i++ {
+		for i := 0; i < int(Kmax); i++ {
 			y[i] = labelFreqs[i].Key
 		}
-		for i := int(K_); i < len(y); i++ {
+		for i := int(Kmax); i < len(y); i++ {
 			y[i] = ^uint32(0)
 		}
 		return y
@@ -75,13 +75,13 @@ func RankTopK(labelDist SparseVector, K uint) LabelVector {
 		}
 		if l < len(y) {
 			if l < ylen {
-				l_ := ylen
-				if l_ >= len(y) {
-					l_ = len(y) - 1
+				l2 := ylen
+				if l2 >= len(y) {
+					l2 = len(y) - 1
 				}
-				for l_ > l {
-					y[l_] = y[l_-1]
-					l_--
+				for l2 > l {
+					y[l2] = y[l2-1]
+					l2--
 				}
 			}
 			y[l] = label
@@ -114,7 +114,7 @@ func ReportMaxPrecision(Y LabelVectors, K uint) []float32 {
 // nDCG@0 is undefined, so this function returns a slice filled with NaN.
 //
 // NOTICE: The maximum nDCG@K is always 1.0, because nDCG@K is normalized.
-func ReportNDCG(Y LabelVectors, K uint, YK_ LabelVectors) []float32 {
+func ReportNDCG(Y LabelVectors, K uint, Yhat LabelVectors) []float32 {
 	pKs := make([]float32, len(Y))
 	if K == 0 {
 		for i := range pKs {
@@ -123,19 +123,19 @@ func ReportNDCG(Y LabelVectors, K uint, YK_ LabelVectors) []float32 {
 		return pKs
 	}
 	for i, yi := range Y {
-		YK_i := YK_[i]
+		yihat := Yhat[i]
 		pKi := float32(0.0)
-		lenYK_i := len(YK_[i])
-		if lenYK_i > int(K) {
-			lenYK_i = int(K)
+		lenYihat := len(Yhat[i])
+		if lenYihat > int(K) {
+			lenYihat = int(K)
 		}
 		labelSeti := make(map[uint32]struct{})
 		for _, label := range yi {
 			labelSeti[label] = struct{}{}
 		}
-		for rank := 0; rank < lenYK_i; rank++ {
-			if _, ok := labelSeti[YK_i[rank]]; ok {
-				pKi += 1.0 / Log2_32(1.0+(1.0+float32(rank)))
+		for rank := 0; rank < lenYihat; rank++ {
+			if _, ok := labelSeti[yihat[rank]]; ok {
+				pKi += 1.0 / LogBinary32(1.0+(1.0+float32(rank)))
 			}
 		}
 		Ki := K
@@ -148,21 +148,21 @@ func ReportNDCG(Y LabelVectors, K uint, YK_ LabelVectors) []float32 {
 }
 
 // ReportPrecision reports the Precision@K value of each label vector in Y.
-func ReportPrecision(Y LabelVectors, K uint, YK_ LabelVectors) []float32 {
+func ReportPrecision(Y LabelVectors, K uint, Yhat LabelVectors) []float32 {
 	pKs := make([]float32, len(Y))
 	for i, yi := range Y {
-		YK_i := YK_[i]
+		yihat := Yhat[i]
 		pKi := float32(0.0)
-		lenYK_i := len(YK_i)
-		if lenYK_i > int(K) {
-			lenYK_i = int(K)
+		lenYihat := len(yihat)
+		if lenYihat > int(K) {
+			lenYihat = int(K)
 		}
 		labelSeti := make(map[uint32]struct{})
 		for _, label := range yi {
 			labelSeti[label] = struct{}{}
 		}
-		for rank := 0; rank < lenYK_i; rank++ {
-			if _, ok := labelSeti[YK_i[rank]]; ok {
+		for rank := 0; rank < lenYihat; rank++ {
+			if _, ok := labelSeti[yihat[rank]]; ok {
 				pKi += 1.0
 			}
 		}

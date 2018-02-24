@@ -121,7 +121,7 @@ func (cmd *TestForestCommand) Run() error {
 		avgHeight += h
 	}
 	avgHeight /= float32(len(avgHeights))
-	expectAvgHeight := sticker.Log2_32(float32(ds.Size()) / float32(forest.TreeParams.MaxEntriesInLeaf))
+	expectAvgHeight := sticker.LogBinary32(float32(ds.Size()) / float32(forest.TreeParams.MaxEntriesInLeaf))
 	opts.Logger.Printf("Tree Balances: [avg(height[.])]=%.4g, log2(n/MaxEntriesInLeaf)=%.4g", avgHeights, expectAvgHeight)
 	fmt.Printf("Average Tree Balance: avg([avg(height[.])])/log2(n/MaxEntriesInLeaf)=%.4g\n", avgHeight/expectAvgHeight)
 	fmt.Printf("Average Total Variation among Trees: %.5g\n", avgTV)

@@ -26,8 +26,8 @@ func TestIdealDCG(t *testing.T) {
 	IdealDCG0 := IdealDCG(0)
 	goassert.New(t, "NaN (float32)").Equal(fmt.Sprintf("%#v (%T)", IdealDCG0, IdealDCG0))
 	goassert.New(t, float32(1.0)).Equal(IdealDCG(1))
-	goassert.New(t, float32(1.0+1.0/Log2_32(1.0+2.0))).Equal(IdealDCG(2))
-	goassert.New(t, float32(1.0+1.0/Log2_32(1.0+2.0)+0.5)).Equal(IdealDCG(3))
+	goassert.New(t, float32(1.0+1.0/LogBinary32(1.0+2.0))).Equal(IdealDCG(2))
+	goassert.New(t, float32(1.0+1.0/LogBinary32(1.0+2.0)+0.5)).Equal(IdealDCG(3))
 }
 
 func TestInvertRanks(t *testing.T) {
@@ -80,7 +80,7 @@ func TestReportNDCG(t *testing.T) {
 		LabelVector{9},
 	}))
 	goassert.New(t, []float32{
-		1.0, (1.0 / Log2_32(1.0+2.0)) / IdealDCG(1), 0.0,
+		1.0, (1.0 / LogBinary32(1.0+2.0)) / IdealDCG(1), 0.0,
 		1.0, 1.0, 1.0,
 		1.0,
 	}).Equal(ReportNDCG(Y, 2, LabelVectors{
@@ -89,8 +89,8 @@ func TestReportNDCG(t *testing.T) {
 		LabelVector{9, 0},
 	}))
 	goassert.New(t, []float32{
-		1.0, (1.0 / Log2_32(1.0+2.0)) / IdealDCG(1), 0.0,
-		1.0, (1.0 + 1.0/Log2_32(1.0+2.0)) / IdealDCG(3), 1.0,
+		1.0, (1.0 / LogBinary32(1.0+2.0)) / IdealDCG(1), 0.0,
+		1.0, (1.0 + 1.0/LogBinary32(1.0+2.0)) / IdealDCG(3), 1.0,
 		1.0,
 	}).Equal(ReportNDCG(Y, 3, LabelVectors{
 		LabelVector{0, 9, ^uint32(0)}, LabelVector{0, 9, ^uint32(0)}, LabelVector{0, 9, ^uint32(0)},
@@ -98,8 +98,8 @@ func TestReportNDCG(t *testing.T) {
 		LabelVector{9, 0, 2},
 	}))
 	goassert.New(t, []float32{
-		1.0, (1.0 / Log2_32(1.0+2.0)) / IdealDCG(1), 0.0,
-		1.0, (1.0 + 1.0/Log2_32(1.0+2.0)) / IdealDCG(3), 1.0,
+		1.0, (1.0 / LogBinary32(1.0+2.0)) / IdealDCG(1), 0.0,
+		1.0, (1.0 + 1.0/LogBinary32(1.0+2.0)) / IdealDCG(3), 1.0,
 		1.0,
 	}).Equal(ReportNDCG(Y, 4, LabelVectors{
 		LabelVector{0, 9, ^uint32(0), ^uint32(0)}, LabelVector{0, 9, ^uint32(0), ^uint32(0)}, LabelVector{0, 9, ^uint32(0), ^uint32(0)},
@@ -107,8 +107,8 @@ func TestReportNDCG(t *testing.T) {
 		LabelVector{9, 0, 2, 3},
 	}))
 	goassert.New(t, []float32{
-		1.0, (1.0 / Log2_32(1.0+2.0)) / IdealDCG(1), 0.0,
-		1.0, (1.0 + 1.0/Log2_32(1.0+2.0)) / IdealDCG(3), 1.0,
+		1.0, (1.0 / LogBinary32(1.0+2.0)) / IdealDCG(1), 0.0,
+		1.0, (1.0 + 1.0/LogBinary32(1.0+2.0)) / IdealDCG(3), 1.0,
 		1.0,
 	}).Equal(ReportNDCG(Y, 5, LabelVectors{
 		LabelVector{0, 9, ^uint32(0), ^uint32(0), ^uint32(0)}, LabelVector{0, 9, ^uint32(0), ^uint32(0), ^uint32(0)}, LabelVector{0, 9, ^uint32(0), ^uint32(0), ^uint32(0)},
@@ -117,7 +117,7 @@ func TestReportNDCG(t *testing.T) {
 	}))
 	// Also with smaller K, it should work.
 	goassert.New(t, []float32{
-		1.0, (1.0 / Log2_32(1.0+2.0)) / IdealDCG(1), 0.0,
+		1.0, (1.0 / LogBinary32(1.0+2.0)) / IdealDCG(1), 0.0,
 		1.0, 1.0, 1.0,
 		1.0,
 	}).Equal(ReportNDCG(Y, 2, LabelVectors{

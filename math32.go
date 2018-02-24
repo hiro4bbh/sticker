@@ -42,8 +42,8 @@ func Log32(x float32) float32 {
 	return float32(math.Log(float64(x)))
 }
 
-// Log2_32 is the float32-version of math.Log2.
-func Log2_32(x float32) float32 {
+// LogBinary32 is the float32-version of math.Log2.
+func LogBinary32(x float32) float32 {
 	return float32(math.Log2(float64(x)))
 }
 
