@@ -2,6 +2,7 @@ package sticker
 
 import (
 	"bytes"
+	"encoding/gob"
 	"fmt"
 	"sort"
 	"strings"
@@ -90,6 +91,27 @@ func TestLabelVectors(t *testing.T) {
 		LabelVector{0}, LabelVector{0, 1}, LabelVector{0, 2, 7},
 	}
 	goassert.New(t, 8).Equal(Y.Dim())
+}
+
+func TestDecodeEncodeDataset(t *testing.T) {
+	ds := &Dataset{
+		X: FeatureVectors{
+			FeatureVector{KeyValue32{0, 1.0}},
+			FeatureVector{KeyValue32{0, 2.0}, KeyValue32{1, 3.0}},
+			FeatureVector{KeyValue32{0, 4.0}, KeyValue32{2, 5.0}, KeyValue32{9, 6.0}},
+			FeatureVector{KeyValue32{10, 7.0}},
+		},
+		Y: LabelVectors{
+			LabelVector{0}, LabelVector{0, 1}, LabelVector{0, 2, 9}, LabelVector{10},
+		},
+	}
+	var buf bytes.Buffer
+	goassert.New(t).SucceedWithoutError(EncodeDataset(ds, &buf))
+	var decodedDs Dataset
+	goassert.New(t).SucceedWithoutError(DecodeDataset(&decodedDs, &buf))
+	goassert.New(t, ds).Equal(&decodedDs)
+	// gob.Decoder.Decode won't call Dataset.GobDecode, because the encoder did not encode Dataset.
+	goassert.New(t, "Dataset should be encoded with EncodeDataset").ExpectError(gob.NewEncoder(&buf).Encode(&decodedDs))
 }
 
 func TestDatasetFeatureSubSet(t *testing.T) {

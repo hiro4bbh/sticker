@@ -2,6 +2,7 @@ package sticker
 
 import (
 	"bufio"
+	"encoding/gob"
 	"fmt"
 	"io"
 	"sort"
@@ -311,6 +312,72 @@ func (ds *Dataset) FeatureSubSet(features map[uint32]struct{}) *Dataset {
 		subds.X, subds.Y = append(subds.X, xi_), append(subds.Y, yi_)
 	}
 	return subds
+}
+
+// DecodeDatasetWithGobDecoder decodes Dataset using decoder.
+//
+// This function returns an error in decoding.
+func DecodeDatasetWithGobDecoder(ds *Dataset, decoder *gob.Decoder) error {
+	var size int
+	if err := decoder.Decode(&size); err != nil {
+		return fmt.Errorf("DecodeDataset: size: %s", err)
+	}
+	ds.X = make(FeatureVectors, size)
+	for i := range ds.X {
+		if err := decoder.Decode(&ds.X[i]); err != nil {
+			return fmt.Errorf("DecodeDataset: #%d feature vector: %s", i, err)
+		}
+	}
+	ds.Y = make(LabelVectors, size)
+	for i := range ds.Y {
+		if err := decoder.Decode(&ds.Y[i]); err != nil {
+			return fmt.Errorf("DecodeDataset: #%d label vector: %s", i, err)
+		}
+	}
+	return nil
+}
+
+// DecodeDataset decodes Dataset from r.
+// Directly passing *os.File used by a gob.Decoder to this function causes mysterious errors.
+// Thus, if users use gob.Decoder, then they should call DecodeDatasetWithGobDecoder.
+//
+// This function returns an error in decoding.
+func DecodeDataset(ds *Dataset, r io.Reader) error {
+	return DecodeDatasetWithGobDecoder(ds, gob.NewDecoder(r))
+}
+
+// EncodeDatasetWithGobEncoder decodes Dataset using encoder.
+//
+// This function returns an error in decoding.
+func EncodeDatasetWithGobEncoder(ds *Dataset, encoder *gob.Encoder) error {
+	if err := encoder.Encode(ds.Size()); err != nil {
+		return fmt.Errorf("EncodeDataset: size: %s", err)
+	}
+	for i, xi := range ds.X {
+		if err := encoder.Encode(xi); err != nil {
+			return fmt.Errorf("EncodeDataset: #%d feature vector: %s", i, err)
+		}
+	}
+	for i, yi := range ds.Y {
+		if err := encoder.Encode(yi); err != nil {
+			return fmt.Errorf("EncodeDataset: #%d label vector: %s", i, err)
+		}
+	}
+	return nil
+}
+
+// EncodeDataset encodes Dataset to w.
+// Directly passing *os.File used by a gob.Encoder to this function causes mysterious errors.
+// Thus, if users use gob.Encoder, then they should call EncodeDatasetWithGobEncoder.
+//
+// This function returns an error in encoding.
+func EncodeDataset(ds *Dataset, w io.Writer) error {
+	return EncodeDatasetWithGobEncoder(ds, gob.NewEncoder(w))
+}
+
+// GobEncode returns the error always, because users should encode large Dataset objects with EncodeDataset.
+func (ds *Dataset) GobEncode() ([]byte, error) {
+	return nil, fmt.Errorf("Dataset should be encoded with EncodeDataset")
 }
 
 // Size returns the size of the dataset.
