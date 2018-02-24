@@ -171,6 +171,20 @@ func ReadLabelForest(filename string) (*plugin.LabelForest, error) {
 	return &forest, nil
 }
 
+// ReadLabelNear reads the .labelnear model file.
+func ReadLabelNear(filename string) (*sticker.LabelNear, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, fmt.Errorf("ReadLabelNear: %s: %s", filename, err)
+	}
+	defer file.Close()
+	var model sticker.LabelNear
+	if err := sticker.DecodeLabelNear(&model, file); err != nil {
+		return nil, fmt.Errorf("ReadLabelNear: %s: %s", filename, err)
+	}
+	return &model, nil
+}
+
 // ReadLabelNearest reads the .labelnearest model file.
 func ReadLabelNearest(filename string) (*sticker.LabelNearest, error) {
 	file, err := os.Open(filename)

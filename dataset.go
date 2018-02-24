@@ -160,6 +160,26 @@ func (kvs KeyValues32OrderedByValue) Swap(i, j int) {
 // The elements should be ordered by feature ID (key).
 type FeatureVector = KeyValues32OrderedByKey
 
+// DotCount32 returns the inner product and the size of the intersect of the supports between x and y.
+func DotCount(x, y FeatureVector) (float32, int) {
+	xj, yj, d, count := 0, 0, float32(0.0), 0
+	for xj < len(x) {
+		for yj < len(y) && x[xj].Key > y[yj].Key {
+			yj++
+		}
+		if yj >= len(y) {
+			break
+		}
+		if x[xj].Key == y[yj].Key {
+			d += x[xj].Value * y[yj].Value
+			yj++
+			count++
+		}
+		xj++
+	}
+	return d, count
+}
+
 // FeatureVectors is the FeatureVector slice.
 type FeatureVectors []FeatureVector
 

@@ -59,6 +59,12 @@ sticker-util -verbose -debug ./data/Amazon-3M/ @trainNearest @testNearest -S=75 
 
 See the help of `@trainNearest` and `@testNearest` for the sub-command options.
 
+## `LabelNear`: A faster implementation of `LabelNearest`
+`LabelNear` is a faster implementation of `LabelNearest`.
+
+Almost parameters and options are same with the ones of `LabelNearest`.
+See the help of `@trainNear` and `@testNear` for details.
+
 ## Other Models
 ### Implemented in Core
 - `LabelConst`: Multi-label constant model (see [GoDoc](https://godoc.org/github.com/hiro4bbh/sticker#LabelConst))

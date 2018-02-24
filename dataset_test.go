@@ -71,6 +71,12 @@ func TestKeyValues32OrderedByValue(t *testing.T) {
 	}).Equal(KeyValues32(data))
 }
 
+func TestDotCount(t *testing.T) {
+	goassert.New(t, float32(1.0), 1).Equal(DotCount(FeatureVector{KeyValue32{1, 1.0}}, FeatureVector{KeyValue32{1, 1.0}}))
+	goassert.New(t, float32(1.0), 1).Equal(DotCount(FeatureVector{KeyValue32{2, 1.0}}, FeatureVector{KeyValue32{1, 1.0}, KeyValue32{2, 1.0}}))
+	goassert.New(t, float32(1.0), 1).Equal(DotCount(FeatureVector{KeyValue32{1, 1.0}, KeyValue32{2, 1.0}}, FeatureVector{KeyValue32{2, 1.0}}))
+}
+
 func TestFeatureVectors(t *testing.T) {
 	X := FeatureVectors{
 		FeatureVector{KeyValue32{0, 1.0}},
