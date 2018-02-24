@@ -9,7 +9,7 @@ import (
 
 // SimCountPair is the data structure for float32 similarity and uint32 count.
 type SimCountPair struct {
-	Sim float32
+	Sim   float32
 	Count uint32
 }
 

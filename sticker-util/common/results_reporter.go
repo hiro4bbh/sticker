@@ -10,12 +10,12 @@ import (
 
 // ResultsReporter manages the precision@K and nDCG@K results on the given LabelVectors.
 type ResultsReporter struct {
-	_Y sticker.LabelVectors
-	_Ks []uint
-	maxK uint
-	avgMaxPKs map[uint]float32
-	pKsSet, nKsSet map[uint][]float32
-	avgPKs, avgNKs map[uint]float32
+	_Y                     sticker.LabelVectors
+	_Ks                    []uint
+	maxK                   uint
+	avgMaxPKs              map[uint]float32
+	pKsSet, nKsSet         map[uint][]float32
+	avgPKs, avgNKs         map[uint]float32
 	startTime, lastEndTime time.Time
 }
 
@@ -32,9 +32,9 @@ func NewResultsReporter(Y sticker.LabelVectors, Ks []uint) *ResultsReporter {
 		pKsSet[K], nKsSet[K] = make([]float32, 0, len(Y)), make([]float32, 0, len(Y))
 	}
 	return &ResultsReporter{
-		_Y: Y,
-		_Ks: Ks,
-		maxK: maxK,
+		_Y:     Y,
+		_Ks:    Ks,
+		maxK:   maxK,
 		pKsSet: pKsSet,
 		nKsSet: nKsSet,
 		avgPKs: make(map[uint]float32),
@@ -52,7 +52,7 @@ func (reporter *ResultsReporter) AvgMaxPrecisionKs() map[uint]float32 {
 			for _, maxPKi := range maxPKs {
 				sumPK += maxPKi
 			}
-			reporter.avgMaxPKs[K] = sumPK/float32(len(reporter._Y))
+			reporter.avgMaxPKs[K] = sumPK / float32(len(reporter._Y))
 		}
 	}
 	return reporter.avgMaxPKs

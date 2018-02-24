@@ -14,7 +14,7 @@ import (
 type TestBoostCommand struct {
 	Help       bool
 	Ks         common.OptionUints
-	N uint
+	N          uint
 	Restore    bool
 	Ts         common.OptionUints
 	TableNames common.OptionStrings
@@ -30,7 +30,7 @@ func NewTestBoostCommand(opts *Options) *TestBoostCommand {
 	return &TestBoostCommand{
 		Help:       false,
 		Ks:         common.OptionUints{true, []uint{1, 3, 5}},
-		N: ^uint(0),
+		N:          ^uint(0),
 		Restore:    false,
 		Ts:         common.OptionUints{true, []uint{0}},
 		TableNames: common.OptionStrings{true, []string{"test.txt"}},

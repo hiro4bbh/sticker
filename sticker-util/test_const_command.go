@@ -12,7 +12,7 @@ import (
 type TestConstCommand struct {
 	Help       bool
 	Ks         common.OptionUints
-	N uint
+	N          uint
 	TableNames common.OptionStrings
 
 	Result map[string]interface{}
@@ -26,7 +26,7 @@ func NewTestConstCommand(opts *Options) *TestConstCommand {
 	return &TestConstCommand{
 		Help:       false,
 		Ks:         common.OptionUints{true, []uint{1, 3, 5}},
-		N: ^uint(0),
+		N:          ^uint(0),
 		TableNames: common.OptionStrings{true, []string{"test.txt"}},
 		opts:       opts,
 	}

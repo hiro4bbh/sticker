@@ -14,7 +14,7 @@ import (
 type TestForestCommand struct {
 	Help        bool
 	Ks          common.OptionUints
-	N uint
+	N           uint
 	OnlyResults bool
 	TableNames  common.OptionStrings
 	Weighted    bool
@@ -28,7 +28,7 @@ func NewTestForestCommand(opts *Options) *TestForestCommand {
 	return &TestForestCommand{
 		Help:        false,
 		Ks:          common.OptionUints{true, []uint{1, 3, 5}},
-		N: ^uint(0),
+		N:           ^uint(0),
 		OnlyResults: false,
 		TableNames:  common.OptionStrings{true, []string{"test.txt"}},
 		Weighted:    false,
