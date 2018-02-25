@@ -160,7 +160,7 @@ func NewKeyCountMap32(capacity uint) KeyCountMap32 {
 
 // Get returns the entry with the given key.
 func (m KeyCountMap32) Get(key uint32) KeyCount32 {
-	for k := hashKeyCountMap32.Hash(key) & uint32(len(m)-1); m[k].Count > 0; k = (k+1)&uint32(len(m)-1) {
+	for k := hashKeyCountMap32.Hash(key) & uint32(len(m)-1); m[k].Count > 0; k = (k + 1) & uint32(len(m)-1) {
 		if m[k].Key == key {
 			return KeyCount32{m[k].Key, m[k].Count}
 		}
@@ -171,7 +171,7 @@ func (m KeyCountMap32) Get(key uint32) KeyCount32 {
 // Inc increments the entry's value with the given key, and returns the entry.
 func (m KeyCountMap32) Inc(key uint32) KeyCount32 {
 	k := hashKeyCountMap32.Hash(key) & uint32(len(m)-1)
-	for ; m[k].Count > 0; k = (k+1) & uint32(len(m)-1) {
+	for ; m[k].Count > 0; k = (k + 1) & uint32(len(m)-1) {
 		if m[k].Key == key {
 			m[k].Count++
 			return KeyCount32{m[k].Key, m[k].Count}

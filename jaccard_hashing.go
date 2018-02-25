@@ -142,7 +142,7 @@ func (hashing *JaccardHashing) GobEncode() ([]byte, error) {
 // FindNears returns the histogram of the neighbors from the given feature vector.
 func (hashing *JaccardHashing) FindNears(vec FeatureVector) KeyCountMap32 {
 	hvec := hashing.Hash(vec)
-	nears := NewKeyCountMap32(hashing.K()*hashing.R())
+	nears := NewKeyCountMap32(hashing.K() * hashing.R())
 	for k, hveck := range hvec {
 		for _, idx := range hashing.tables[k][hveck] {
 			nears.Inc(idx)
