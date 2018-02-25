@@ -8,26 +8,6 @@ import (
 	"math/rand"
 )
 
-// HashUint32 is universal hashing for uint32.
-type HashUint32 uint32
-
-// Hash returns the hashed value of x.
-func (h HashUint32) Hash(x uint32) uint32 {
-	z := x * uint32(h)
-	z ^= z >> 13
-	z *= 0x85ebca6b
-	return (z * x) << 5
-}
-
-// HashUint32 is 2-universal hashing for uint32.
-type HashDoubleUint32 uint32
-
-// Hash returns the hashed value of the pair of x and y.
-func (h HashDoubleUint32) Hash(x, y uint32) uint32 {
-	z := ((x + 1) << 10) + y
-	return (uint32(h) * z) << 3
-}
-
 // JaccardHashing is the sophisticated minwise hashing for estimating Jaccard similarity (Wang+ 2017).
 //
 // References:
@@ -160,12 +140,12 @@ func (hashing *JaccardHashing) GobEncode() ([]byte, error) {
 }
 
 // FindNears returns the histogram of the neighbors from the given feature vector.
-func (hashing *JaccardHashing) FindNears(vec FeatureVector) map[uint32]uint32 {
+func (hashing *JaccardHashing) FindNears(vec FeatureVector) KeyCountMap32 {
 	hvec := hashing.Hash(vec)
-	nears := make(map[uint32]uint32)
+	nears := NewKeyCountMap32(hashing.K()*hashing.R())
 	for k, hveck := range hvec {
 		for _, idx := range hashing.tables[k][hveck] {
-			nears[idx]++
+			nears.Inc(idx)
 		}
 	}
 	return nears

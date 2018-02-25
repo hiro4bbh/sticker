@@ -130,7 +130,8 @@ func (model *LabelNear) FindNears(x FeatureVector, c, S uint, beta float32) KeyV
 	// Sieve out the top-(cS) entries.
 	nearsList := make(KeyValues32OrderedByValue, 0, c*S)
 	K := float32(model.Hashing.K())
-	for protoidx, count := range nears {
+	for _, nearPair := range nears {
+		protoidx, count := nearPair.Key, nearPair.Count
 		if sim := float32(count) / K; sim > 0.0 {
 			if len(nearsList) == 0 {
 				nearsList = append(nearsList, KeyValue32{uint32(protoidx), sim})
@@ -140,8 +141,7 @@ func (model *LabelNear) FindNears(x FeatureVector, c, S uint, beta float32) KeyV
 				}
 			} else {
 				for rank := 0; rank < len(nearsList); rank++ {
-					// Remove the randomized effect of golang's map iteration order.
-					if sim > nearsList[rank].Value || (sim == nearsList[rank].Value && protoidx <= nearsList[rank].Key) {
+					if sim > nearsList[rank].Value {
 						if len(nearsList) < cap(nearsList) {
 							nearsList = append(nearsList, KeyValue32{0, 0})
 						}

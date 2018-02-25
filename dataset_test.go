@@ -51,6 +51,22 @@ func TestSparsifyVector(t *testing.T) {
 	}).Equal(SparsifyVector([]float32{0.0, 1.0, 0.0, -1.0, 0.0}))
 }
 
+func TestKeyCountMap32(t *testing.T) {
+	m := NewKeyCountMap32(27)
+	goassert.New(t, 32).Equal(len(m))
+	goassert.New(t, map[uint32]uint32{}).Equal(m.Map())
+	m.Inc(1)
+	m.Inc(2)
+	m.Inc(1)
+	m.Inc(31)
+	goassert.New(t, map[uint32]uint32{1: 2, 2: 1, 31: 1}).Equal(m.Map())
+	goassert.New(t, KeyCount32{1, 2}).Equal(m.Get(1))
+	goassert.New(t, KeyCount32{2, 1}).Equal(m.Get(2))
+	goassert.New(t, KeyCount32{31, 1}).Equal(m.Get(31))
+	goassert.New(t, KeyCount32{0, 0}).Equal(m.Get(0))
+	goassert.New(t, KeyCount32{0, 0}).Equal(m.Get(63))
+}
+
 func TestKeyValues32OrderedByKey(t *testing.T) {
 	data := KeyValues32OrderedByKey(KeyValues32{
 		KeyValue32{4, 2.0}, KeyValue32{1, 1.0}, KeyValue32{1, 2.0}, KeyValue32{2, 3.0}, KeyValue32{3, 3.0},

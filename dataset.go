@@ -5,6 +5,7 @@ import (
 	"encoding/gob"
 	"fmt"
 	"io"
+	"math/bits"
 	"sort"
 	"strconv"
 	"strings"
@@ -113,6 +114,82 @@ func SparsifyVector(v []float32) SparseVector {
 		}
 	}
 	return sv
+}
+
+// HashUint32 is universal hashing for uint32.
+type HashUint32 uint32
+
+// Hash returns the hashed value of x.
+func (h HashUint32) Hash(x uint32) uint32 {
+	z := x * uint32(h)
+	z ^= z >> 13
+	z *= 0x85ebca6b
+	return (z * x) << 5
+}
+
+// HashUint32 is 2-universal hashing for uint32.
+type HashDoubleUint32 uint32
+
+// Hash returns the hashed value of the pair of x and y.
+func (h HashDoubleUint32) Hash(x, y uint32) uint32 {
+	z := ((x + 1) << 10) + y
+	return (uint32(h) * z) << 3
+}
+
+// KeyCount32 is the pair of uint32 feature key and its uint32 value.
+type KeyCount32 struct {
+	Key, Count uint32
+}
+
+// KeyCounts32 is the slice of KeyCount32.
+type KeyCounts32 []KeyCount32
+
+const hashKeyCountMap32 = HashUint32(31)
+
+// KeyCountMap32 is the faster map of KeyCount32s.
+// This cannot has entries with value 0.
+//
+// Currently, this does not support expansion at insertion.
+// Users can iterate the entries with raw access to the internal, so this is for expert use in order to achieve faster counting.
+type KeyCountMap32 KeyCounts32
+
+// NewKeyCountMap32 returns a new KeyCountMap32.
+func NewKeyCountMap32(capacity uint) KeyCountMap32 {
+	return make(KeyCountMap32, 1<<uint(bits.Len(capacity)))
+}
+
+// Get returns the entry with the given key.
+func (m KeyCountMap32) Get(key uint32) KeyCount32 {
+	for k := hashKeyCountMap32.Hash(key) & uint32(len(m)-1); m[k].Count > 0; k = (k+1)&uint32(len(m)-1) {
+		if m[k].Key == key {
+			return KeyCount32{m[k].Key, m[k].Count}
+		}
+	}
+	return KeyCount32{0, 0}
+}
+
+// Inc increments the entry's value with the given key, and returns the entry.
+func (m KeyCountMap32) Inc(key uint32) KeyCount32 {
+	k := hashKeyCountMap32.Hash(key) & uint32(len(m)-1)
+	for ; m[k].Count > 0; k = (k+1) & uint32(len(m)-1) {
+		if m[k].Key == key {
+			m[k].Count++
+			return KeyCount32{m[k].Key, m[k].Count}
+		}
+	}
+	m[k] = KeyCount32{key, 1}
+	return KeyCount32{m[k].Key, m[k].Count}
+}
+
+// Map returns the map version of self.
+func (m KeyCountMap32) Map() map[uint32]uint32 {
+	ma := make(map[uint32]uint32)
+	for _, mpair := range m {
+		if mpair.Count > 0 {
+			ma[mpair.Key] = mpair.Count
+		}
+	}
+	return ma
 }
 
 // KeyValue32 is the pair of uint32 feature key and its float32 value.

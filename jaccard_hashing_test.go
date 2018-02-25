@@ -18,8 +18,8 @@ func TestJaccardHashing(t *testing.T) {
 	hashing.Add(x1, 0)
 	hashing.Add(x2, 1)
 	// Some errors can be permissible.
-	goassert.New(t, map[uint32]uint32{0: 16, 1: 7}).Equal(hashing.FindNears(x1))
-	goassert.New(t, map[uint32]uint32{0: 7, 1: 16}).Equal(hashing.FindNears(x2))
+	goassert.New(t, map[uint32]uint32{0: 16, 1: 7}).Equal(hashing.FindNears(x1).Map())
+	goassert.New(t, map[uint32]uint32{0: 7, 1: 16}).Equal(hashing.FindNears(x2).Map())
 	goassert.New(t, []int{1, 2, 2, 1, 1, 2, 2, 1, 2, 2, 2, 1, 1, 2, 2, 1}, []int{18, 7, 0, 0, 0, 0, 0, 0}).Equal(hashing.Summary())
 	// Check the reservoir boundedness.
 	for t := uint32(2); t < 128; t++ {
