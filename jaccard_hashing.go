@@ -154,6 +154,10 @@ func (hashing *JaccardHashing) FindNears(vec FeatureVector) KeyCountMap32 {
 // Hash returns the K hashed values of the given feature vector.
 func (hashing *JaccardHashing) Hash(vec FeatureVector) []uint32 {
 	K, L := hashing.K(), hashing.L()
+	if len(vec) == 0 {
+		// Adhoc solution.
+		return make([]uint32, K)
+	}
 	shiftL := 32 - L
 	binSize := uint32(((1 << L) + (K - 1)) / K)
 	H0 := make([]uint32, K)

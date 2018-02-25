@@ -36,4 +36,9 @@ func TestJaccardHashing(t *testing.T) {
 	goassert.New(t, hashing).Equal(&decodedHashing)
 	// gob.Decoder.Decode won't call JaccardHashing.GobDecode, because the encoder did not encode JaccardHashing.
 	goassert.New(t, "JaccardHashing should be encoded with EncodeJaccardHashing").ExpectError(gob.NewEncoder(&buf).Encode(&decodedHashing))
+	// Check that an empty FeatureVector can be hashed safely.
+	hashing0 := NewJaccardHashing(16, 10, 8)
+	hashing0.Add(FeatureVector{}, 0)
+	goassert.New(t, []uint32{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}).Equal(hashing0.Hash(FeatureVector{}))
+	goassert.New(t, []int{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, []int{16, 0, 0, 0, 0, 0, 0, 0}).Equal(hashing0.Summary())
 }

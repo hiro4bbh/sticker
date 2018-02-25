@@ -42,6 +42,9 @@ func TrainLabelNear(ds *Dataset, params *LabelNearParameters, debug *log.Logger)
 		X: make(FeatureVectors, len(ds.X)),
 		Y: make(LabelVectors, len(ds.Y)),
 	}
+	if debug != nil {
+		debug.Printf("constructing JaccardHashing ...")
+	}
 	hashing := NewJaccardHashing(params.K, params.L, params.R)
 	for i, xi := range ds.X {
 		yi := ds.Y[i]
