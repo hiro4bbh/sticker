@@ -26,7 +26,11 @@ func NewLabelNearParameters() *LabelNearParameters {
 	}
 }
 
-// LabelNear is a faster implementation of LabelNearest.
+// LabelNear is a faster implementation of LabelNearest which uses the optimal Densified One Permutation Hashing (DOPH) and the reservoir sampling (Wang+ 2017).
+//
+// References:
+//
+// (Wang+ 2017) Y. Wang, A. Shrivastava, and J. Ryu. "FLASH: Randomized Algorithms Accelerated over CPU-GPU for Ultra-High Dimensional Similarity Search." arXiv preprint arXiv:1709.01190, 2017.
 type LabelNear struct {
 	// Dataset is the training dataset.
 	Dataset *Dataset

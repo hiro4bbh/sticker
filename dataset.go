@@ -127,7 +127,7 @@ func (h HashUint32) Hash(x uint32) uint32 {
 	return (z * x) << 5
 }
 
-// HashUint32 is 2-universal hashing for uint32.
+// HashUint32 is universal hashing for double uint32s.
 type HashDoubleUint32 uint32
 
 // Hash returns the hashed value of the pair of x and y.

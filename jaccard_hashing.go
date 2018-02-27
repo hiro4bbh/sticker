@@ -8,7 +8,7 @@ import (
 	"math/rand"
 )
 
-// JaccardHashing is the sophisticated minwise hashing for estimating Jaccard similarity (Wang+ 2017).
+// JaccardHashing is the optimal Densified One Permutation Hashing (DOPH) for estimating Jaccard similarity (Wang+ 2017).
 //
 // References:
 //

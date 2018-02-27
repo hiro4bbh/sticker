@@ -60,7 +60,9 @@ sticker-util -verbose -debug ./data/Amazon-3M/ @trainNearest @testNearest -S=75 
 See the help of `@trainNearest` and `@testNearest` for the sub-command options.
 
 ## `LabelNear`: A faster implementation of `LabelNearest`
-`LabelNear` is a faster implementation of `LabelNearest`.
+`LabelNear` is a faster implementation of `LabelNearest` which uses the optimal Densified One Permutation Hashing (DOPH) and the reservoir sampling.
+This method can process every data entry in about 1 ms with little performance degradation.
+You can see the results on several XMLC datasets __(Bhatia+ 2016)__ at [Dropbox](https://www.dropbox.com/sh/zjerizvew765t0p/AACra7LB0EFwK3RNbSZNprUia?dl=0).
 
 Almost parameters and options are same with the ones of `LabelNearest`.
 See the help of `@trainNear` and `@testNear` for details.
