@@ -32,6 +32,7 @@ type Options struct {
 	LabelBoost     string
 	LabelConst     string
 	LabelForest    string
+	LabelNear      string
 	LabelNearest   string
 	LabelNext      string
 	LabelOne       string
@@ -48,12 +49,14 @@ type Options struct {
 	TestBoosts    []*TestBoostCommand
 	TestConsts    []*TestConstCommand
 	TestForests   []*TestForestCommand
+	TestNears     []*TestNearCommand
 	TestNearests  []*TestNearestCommand
 	TestNexts     []next.TestCommand
 	TestOnes      []*TestOneCommand
 	TrainBoost    *TrainBoostCommand
 	TrainConst    *TrainConstCommand
 	TrainForest   *TrainForestCommand
+	TrainNear     *TrainNearCommand
 	TrainNearest  *TrainNearestCommand
 	TrainNext     next.TrainCommand
 	TrainOne      *TrainOneCommand
@@ -79,6 +82,7 @@ func NewOptions(execpath string, outputWriter, errorWriter io.Writer) *Options {
 		LabelBoost:     "",
 		LabelConst:     "",
 		LabelForest:    "",
+		LabelNear:      "",
 		LabelNearest:   "",
 		LabelNext:      "",
 		LabelOne:       "",
@@ -165,6 +169,7 @@ func (opts *Options) initializeFlagSet() {
 	opts.flagSet.StringVar(&opts.LabelBoost, "labelboost", opts.LabelBoost, "Specify the .labelboost filename")
 	opts.flagSet.StringVar(&opts.LabelConst, "labelconst", opts.LabelConst, "Specify the .labelconst filename")
 	opts.flagSet.StringVar(&opts.LabelForest, "labelforest", opts.LabelForest, "Specify the .labelforest filename")
+	opts.flagSet.StringVar(&opts.LabelNear, "labelnear", opts.LabelNear, "Specify the .labelnear filename")
 	opts.flagSet.StringVar(&opts.LabelNearest, "labelnearest", opts.LabelNearest, "Specify the .labelnearest filename")
 	opts.flagSet.StringVar(&opts.LabelNext, "labelnext", opts.LabelNext, "Specify the .labelnext filename")
 	opts.flagSet.StringVar(&opts.LabelOne, "labelone", opts.LabelOne, "Specify the .labelone filename")
@@ -275,6 +280,12 @@ func (opts *Options) Parse(args []string) error {
 				return fmt.Errorf("@testForest: %s", err)
 			}
 			opts.TestForests = append(opts.TestForests, cmd)
+		case "@testNear":
+			cmd := NewTestNearCommand(opts)
+			if args, err = cmd.Parse(args); err != nil {
+				return fmt.Errorf("@testNear: %s", err)
+			}
+			opts.TestNears = append(opts.TestNears, cmd)
 		case "@testNearest":
 			cmd := NewTestNearestCommand(opts)
 			if args, err = cmd.Parse(args); err != nil {
@@ -316,6 +327,14 @@ func (opts *Options) Parse(args []string) error {
 			opts.TrainForest = NewTrainForestCommand(opts)
 			if args, err = opts.TrainForest.Parse(args); err != nil {
 				return fmt.Errorf("@trainForest: %s", err)
+			}
+		case "@trainNear":
+			if opts.TrainNear != nil {
+				return fmt.Errorf("cannot specify multiple @trainNear commands")
+			}
+			opts.TrainNear = NewTrainNearCommand(opts)
+			if args, err = opts.TrainNear.Parse(args); err != nil {
+				return fmt.Errorf("@trainNear: %s", err)
 			}
 		case "@trainNearest":
 			if opts.TrainNearest != nil {
@@ -522,6 +541,15 @@ func (opts *Options) Run() error {
 		opts.Logger.Printf("finished @trainForest in %s", finishTime.Sub(startTime))
 		debug.FreeOSMemory()
 	}
+	if opts.TrainNear != nil {
+		startTime := time.Now()
+		if err := opts.TrainNear.Run(); err != nil {
+			return fmt.Errorf("@trainNear: %s", err)
+		}
+		finishTime := time.Now()
+		opts.Logger.Printf("finished @trainNear in %s", finishTime.Sub(startTime))
+		debug.FreeOSMemory()
+	}
 	if opts.TrainNearest != nil {
 		startTime := time.Now()
 		if err := opts.TrainNearest.Run(); err != nil {
@@ -579,6 +607,17 @@ func (opts *Options) Run() error {
 			}
 			finishTime := time.Now()
 			opts.Logger.Printf("finished #%d @testForest in %s", i+1, finishTime.Sub(startTime))
+			debug.FreeOSMemory()
+		}
+	}
+	if len(opts.TestNears) > 0 {
+		for i, cmd := range opts.TestNears {
+			startTime := time.Now()
+			if err := cmd.Run(); err != nil {
+				return fmt.Errorf("@testNear: %s", err)
+			}
+			finishTime := time.Now()
+			opts.Logger.Printf("finished #%d @testNear in %s", i+1, finishTime.Sub(startTime))
 			debug.FreeOSMemory()
 		}
 	}
@@ -651,7 +690,7 @@ func (opts *Options) SetLabelNext(value string) {
 
 // ShowHelp shows the help.
 func (opts *Options) ShowHelp() {
-	fmt.Fprintf(opts.ErrorWriter, "sticker-util\nCopyright 2017- Tatsuhiro Aoshima (hiro4bbh@gmail.com).\n\nUsage: %s [commonOptions] datasetPath (@{compareForest|inspectForest|inspectOne|pruneOne|shuffle|summarize|trainBoost|trainConst|trainForest|trainNearest|trainNew|trainOne|testBoost|testConst|testForest|testNearest|testNext|testOne} [subCommandOptions])*\n", opts.execpath)
+	fmt.Fprintf(opts.ErrorWriter, "sticker-util\nCopyright 2017- Tatsuhiro Aoshima (hiro4bbh@gmail.com).\n\nUsage: %s [commonOptions] datasetPath (@{compareForest|inspectForest|inspectOne|pruneOne|shuffle|summarize|trainBoost|trainConst|trainForest|trainNear|trainNearest|trainNew|trainOne|testBoost|testConst|testForest|testNear|testNearest|testNext|testOne} [subCommandOptions])*\n", opts.execpath)
 	if opts.flagSet == nil {
 		opts.initializeFlagSet()
 	}
