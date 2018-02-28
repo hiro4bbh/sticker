@@ -18,8 +18,6 @@ type JaccardHashing struct {
 	tables    [][][]uint32
 	tableHits [][]uint32
 	rng       *rand.Rand
-	single    HashUint32
-	double    HashDoubleUint32
 }
 
 // NewJaccardHashing returns an new JaccardHashing.
@@ -35,8 +33,6 @@ func NewJaccardHashing(K, L, R uint) *JaccardHashing {
 		tables:    tables,
 		tableHits: tableHits,
 		rng:       rng,
-		single:    HashUint32(rng.Uint32() | 1),
-		double:    HashDoubleUint32(rng.Uint32() | 1),
 	}
 	return hashing
 }
@@ -79,12 +75,6 @@ func DecodeJaccardHashingWithGobDecoder(hashing *JaccardHashing, decoder *gob.De
 		return fmt.Errorf("DecodeJaccardHashing: tableHits: %s", err)
 	}
 	hashing.ResetRng()
-	if err := decoder.Decode(&hashing.single); err != nil {
-		return fmt.Errorf("DecodeJaccardHashing: single: %s", err)
-	}
-	if err := decoder.Decode(&hashing.double); err != nil {
-		return fmt.Errorf("DecodeJaccardHashing: double: %s", err)
-	}
 	return nil
 }
 
@@ -116,12 +106,6 @@ func EncodeJaccardHashingWithGobEncoder(hashing *JaccardHashing, encoder *gob.En
 		return fmt.Errorf("EncodeJaccardHashing: tableHits: %s", err)
 	}
 	hashing.ResetRng()
-	if err := encoder.Encode(hashing.single); err != nil {
-		return fmt.Errorf("EncodeJaccardHashing: single: %s", err)
-	}
-	if err := encoder.Encode(hashing.double); err != nil {
-		return fmt.Errorf("EncodeJaccardHashing: double: %s", err)
-	}
 	return nil
 }
 
@@ -166,7 +150,7 @@ func (hashing *JaccardHashing) Hash(vec FeatureVector) []uint32 {
 	}
 	for _, vecpair := range vec {
 		key := vecpair.Key
-		h := hashing.single.Hash(key) >> shiftL
+		h := HashUint32(key) >> shiftL
 		id := h / binSize
 		if H0[id] > h {
 			H0[id] = h
@@ -177,7 +161,7 @@ func (hashing *JaccardHashing) Hash(vec FeatureVector) []uint32 {
 		next := H0[k]
 		if next == ^uint32(0) {
 			for count := uint32(0); next == ^uint32(0); count++ {
-				next = H0[(hashing.double.Hash(uint32(k), count)>>shiftL)/binSize]
+				next = H0[(HashUint32((uint32(k) << 8) + count)>>shiftL)/binSize]
 			}
 		}
 		H[k] = next

@@ -116,24 +116,10 @@ func SparsifyVector(v []float32) SparseVector {
 	return sv
 }
 
-// HashUint32 is universal hashing for uint32.
-type HashUint32 uint32
-
-// Hash returns the hashed value of x.
-func (h HashUint32) Hash(x uint32) uint32 {
-	z := x * uint32(h)
-	z ^= z >> 13
-	z *= 0x85ebca6b
-	return (z * x) << 5
-}
-
-// HashUint32 is universal hashing for double uint32s.
-type HashDoubleUint32 uint32
-
-// Hash returns the hashed value of the pair of x and y.
-func (h HashDoubleUint32) Hash(x, y uint32) uint32 {
-	z := ((x + 1) << 10) + y
-	return (uint32(h) * z) << 3
+// HashUint32 returns the hashed value of the given uint32 x.
+// This is a simple universal hash.
+func HashUint32(x uint32) uint32 {
+	return x * 2654435761
 }
 
 // KeyCount32 is the pair of uint32 feature key and its uint32 value.
@@ -143,8 +129,6 @@ type KeyCount32 struct {
 
 // KeyCounts32 is the slice of KeyCount32.
 type KeyCounts32 []KeyCount32
-
-const hashKeyCountMap32 = HashUint32(31)
 
 // KeyCountMap32 is the faster map of KeyCount32s.
 // This cannot has entries with value 0.
@@ -160,7 +144,7 @@ func NewKeyCountMap32(capacity uint) KeyCountMap32 {
 
 // Get returns the entry with the given key.
 func (m KeyCountMap32) Get(key uint32) KeyCount32 {
-	for k := hashKeyCountMap32.Hash(key) & uint32(len(m)-1); m[k].Count > 0; k = (k + 1) & uint32(len(m)-1) {
+	for k := HashUint32(key) & uint32(len(m)-1); m[k].Count > 0; k = (k + 1) & uint32(len(m)-1) {
 		if m[k].Key == key {
 			return KeyCount32{m[k].Key, m[k].Count}
 		}
@@ -170,7 +154,7 @@ func (m KeyCountMap32) Get(key uint32) KeyCount32 {
 
 // Inc increments the entry's value with the given key, and returns the entry.
 func (m KeyCountMap32) Inc(key uint32) KeyCount32 {
-	k := hashKeyCountMap32.Hash(key) & uint32(len(m)-1)
+	k := HashUint32(key) & uint32(len(m)-1)
 	for ; m[k].Count > 0; k = (k + 1) & uint32(len(m)-1) {
 		if m[k].Key == key {
 			m[k].Count++

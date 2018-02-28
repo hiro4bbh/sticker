@@ -129,31 +129,29 @@ func (model *LabelNear) GobEncode() ([]byte, error) {
 }
 
 // FindNears returns the S near entries with each similarity for the given entry.
-// The quantity cS is used for sieving the candidates by hashing.
+// The quantity c*S is used for sieving the candidates by hashing.
 // See Predict for hyper-parameter details.
 func (model *LabelNear) FindNears(x FeatureVector, c, S uint, beta float32) KeyValues32 {
 	indexSimsTopS := make(KeyValues32, 0, S)
 	nears := model.Hashing.FindNears(x)
 	// Sieve out the top-(cS) entries.
-	nearsList := make(KeyValues32OrderedByValue, 0, c*S)
-	K := float32(model.Hashing.K())
+	nearsList := make(KeyCounts32, 0, c*S)
 	for _, nearPair := range nears {
-		protoidx, count := nearPair.Key, nearPair.Count
-		if sim := float32(count) / K; sim > 0.0 {
+		if protoidx, count := nearPair.Key, nearPair.Count; count > 0 {
 			if len(nearsList) == 0 {
-				nearsList = append(nearsList, KeyValue32{uint32(protoidx), sim})
-			} else if nearsList[len(nearsList)-1].Value > sim {
+				nearsList = append(nearsList, KeyCount32{uint32(protoidx), count})
+			} else if nearsList[len(nearsList)-1].Count > count {
 				if len(nearsList) < cap(nearsList) {
-					nearsList = append(nearsList, KeyValue32{uint32(protoidx), sim})
+					nearsList = append(nearsList, KeyCount32{uint32(protoidx), count})
 				}
 			} else {
 				for rank := 0; rank < len(nearsList); rank++ {
-					if sim > nearsList[rank].Value {
+					if count > nearsList[rank].Count {
 						if len(nearsList) < cap(nearsList) {
-							nearsList = append(nearsList, KeyValue32{0, 0})
+							nearsList = append(nearsList, KeyCount32{0, 0})
 						}
 						copy(nearsList[rank+1:], nearsList[rank:])
-						nearsList[rank] = KeyValue32{uint32(protoidx), sim}
+						nearsList[rank] = KeyCount32{uint32(protoidx), count}
 						break
 					}
 				}

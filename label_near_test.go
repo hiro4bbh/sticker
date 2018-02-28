@@ -96,25 +96,19 @@ func TestLabelNearPredictAll(t *testing.T) {
 	// Test the sorted order.
 	ds2 := &Dataset{
 		X: FeatureVectors{
-			FeatureVector{KeyValue32{5, 1.0}},
 			FeatureVector{KeyValue32{1, 1.0}, KeyValue32{2, 1.0}, KeyValue32{3, 1.0}, KeyValue32{4, 1.0}, KeyValue32{5, 1.0}},
-			FeatureVector{KeyValue32{1, 1.0}},
 			FeatureVector{KeyValue32{1, 1.0}, KeyValue32{3, 1.0}},
 			FeatureVector{KeyValue32{1, 1.0}, KeyValue32{2, 1.0}, KeyValue32{3, 1.0}, KeyValue32{5, 1.0}},
 			FeatureVector{KeyValue32{1, 1.0}, KeyValue32{3, 1.0}, KeyValue32{5, 1.0}},
-			FeatureVector{KeyValue32{1, 1.0}, KeyValue32{5, 1.0}},
-			FeatureVector{KeyValue32{1, 1.0}, KeyValue32{2, 1.0}, KeyValue32{4, 1.0}},
 			FeatureVector{KeyValue32{3, 1.0}},
 		},
 		Y: LabelVectors{
-			LabelVector{1}, LabelVector{2}, LabelVector{3},
-			LabelVector{4}, LabelVector{5}, LabelVector{6},
-			LabelVector{7}, LabelVector{8}, LabelVector{9},
+			LabelVector{1}, LabelVector{2}, LabelVector{3}, LabelVector{4}, LabelVector{5},
 		},
 	}
 	model2 := goassert.New(t).SucceedNew(TrainLabelNear(ds2, params, nil)).(*LabelNear)
 	goassert.New(t, LabelVectors{
-		LabelVector{2, 5, 6, 8, 7},
+		LabelVector{1, 3, 4, 2, 5},
 	}).Equal(model2.PredictAll(FeatureVectors{
 		FeatureVector{KeyValue32{1, 1.0}, KeyValue32{2, 1.0}, KeyValue32{3, 1.0}, KeyValue32{4, 1.0}, KeyValue32{5, 1.0}},
 	}, 5, 5, 5, 1.0, 1.0))
