@@ -1,5 +1,5 @@
 # Package sticker provides a framework for multi-label classification.
-![katamuki.rb logo](https://rawgit.com/hiro4bbh/sticker/master/logo.svg)
+![sticker logo](https://rawgit.com/hiro4bbh/sticker/master/logo.svg)
 
 [![Build Status](https://travis-ci.org/hiro4bbh/sticker.svg?branch=master)](https://travis-ci.org/hiro4bbh/sticker)
 [![Report Status](https://goreportcard.com/badge/github.com/hiro4bbh/sticker)](https://goreportcard.com/report/github.com/hiro4bbh/sticker)
