@@ -161,7 +161,7 @@ func (hashing *JaccardHashing) Hash(vec FeatureVector) []uint32 {
 		next := H0[k]
 		if next == ^uint32(0) {
 			for count := uint32(0); next == ^uint32(0); count++ {
-				next = H0[(HashUint32((uint32(k) << 8) + count)>>shiftL)/binSize]
+				next = H0[(HashUint32((uint32(k)<<8)+count)>>shiftL)/binSize]
 			}
 		}
 		H[k] = next

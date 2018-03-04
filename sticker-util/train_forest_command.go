@@ -133,19 +133,19 @@ func (cmd *TrainForestCommand) Run() error {
 		remain := []int{}
 		ndeleteds := 0
 		for i, yi := range ds.Y {
-			yi_ := make(sticker.LabelVector, 0)
+			yinew := make(sticker.LabelVector, 0)
 			for _, label := range yi {
 				if _, ok := labelInvRankK[label]; ok {
-					yi_ = append(yi_, label)
+					yinew = append(yinew, label)
 				}
 			}
-			if len(yi) > len(yi_) {
+			if len(yi) > len(yinew) {
 				ndeleteds++
 			}
-			if len(yi_) > 0 {
+			if len(yinew) > 0 {
 				remain = append(remain, i)
 			}
-			ds.Y[i] = yi_
+			ds.Y[i] = yinew
 		}
 		n0 := ds.Size()
 		ds = ds.SubSet(remain)

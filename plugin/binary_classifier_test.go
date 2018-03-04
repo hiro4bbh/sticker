@@ -121,13 +121,13 @@ func BenchmarkBinaryClassifierTrainer_L1SVC_DualCD(b *testing.B) {
 	bsvc := goassert.New(b).SucceedNew(BinaryClassifierTrainer_L1SVC_DualCD(X, Y, C, epsilon, debug)).(*sticker.BinaryClassifier)
 	goassert.New(b, Y).Equal(sticker.ClassifyAllToBinaryClass(bsvc.PredictAll(X)))
 	// Check the number of support vectors.
-	bsvc_nSVs := 0
+	nSVs := 0
 	for _, v := range bsvc.Beta {
 		if sticker.Abs32(v) > 1.0e-05 {
-			bsvc_nSVs++
+			nSVs++
 		}
 	}
-	goassert.New(b, 2).Equal(bsvc_nSVs)
+	goassert.New(b, 2).Equal(nSVs)
 	if b.Failed() {
 		b.FailNow()
 	}

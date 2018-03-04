@@ -210,14 +210,14 @@ func BipartitionWeightedGraph(n uint64, minLeftRight uint64, A []float32) ([]boo
 			break
 		}
 	}
-	vertex_ps := make(sticker.KeyValues32OrderedByValue, n)
+	vertexPs := make(sticker.KeyValues32OrderedByValue, n)
 	for i := uint64(0); i < n; i++ {
-		vertex_ps[i] = sticker.KeyValue32{uint32(i), p[i]}
+		vertexPs[i] = sticker.KeyValue32{uint32(i), p[i]}
 	}
-	sort.Sort(vertex_ps)
+	sort.Sort(vertexPs)
 	delta := make([]bool, n)
-	for i := 0; i < len(vertex_ps)/2; i++ {
-		delta[vertex_ps[i].Key] = true
+	for i := 0; i < len(vertexPs)/2; i++ {
+		delta[vertexPs[i].Key] = true
 	}
 	return delta, nil
 }

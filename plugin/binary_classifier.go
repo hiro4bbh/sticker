@@ -224,8 +224,8 @@ func BinaryClassifierTrainer_L2SVC_PrimalCD(X sticker.FeatureVectors, Y []bool, 
 				}
 			}
 			d1, d2 = w[feature]-2*d1, 1+2*d2
-			d1_d2 := d1 / d2
-			if sticker.Abs32(d1_d2) <= 1.0e-05 {
+			r := d1 / d2
+			if sticker.Abs32(r) <= 1.0e-05 {
 				continue
 			}
 			// Search the step size linearly.
@@ -233,7 +233,7 @@ func BinaryClassifierTrainer_L2SVC_PrimalCD(X sticker.FeatureVectors, Y []bool, 
 			lambda, lambdaUB := float32(1.0), d2/(HfeatureSet[feature]/2+sigma)
 			delta := float32(0.0)
 			for {
-				delta = -lambda * d1_d2
+				delta = -lambda * r
 				if lambda <= lambdaUB {
 					break
 				}

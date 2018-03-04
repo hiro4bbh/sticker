@@ -221,7 +221,7 @@ func (kvs KeyValues32OrderedByValue) Swap(i, j int) {
 // The elements should be ordered by feature ID (key).
 type FeatureVector = KeyValues32OrderedByKey
 
-// DotCount32 returns the inner product and the size of the intersect of the supports between x and y.
+// DotCount returns the inner product and the size of the intersect of the supports between x and y.
 func DotCount(x, y FeatureVector) (float32, int) {
 	xj, yj, d, count := 0, 0, float32(0.0), 0
 	for xj < len(x) {
@@ -310,19 +310,19 @@ func ReadTextDataset(reader io.Reader) (*Dataset, error) {
 		return nil, fmt.Errorf("cannot read first line")
 	}
 	line = strings.TrimSpace(line)
-	nentries_nfeatures_nlabels := strings.Split(line, " ")
-	if len(nentries_nfeatures_nlabels) != 3 {
+	nentriesNfeaturesNlabels := strings.Split(line, " ")
+	if len(nentriesNfeaturesNlabels) != 3 {
 		return nil, fmt.Errorf("illegal first line")
 	}
-	nentries, err := strconv.ParseUint(nentries_nfeatures_nlabels[0], 10, 32)
+	nentries, err := strconv.ParseUint(nentriesNfeaturesNlabels[0], 10, 32)
 	if err != nil {
 		return nil, fmt.Errorf("illegal nentries in first line")
 	}
-	nfeatures, err := strconv.ParseUint(nentries_nfeatures_nlabels[1], 10, 32)
+	nfeatures, err := strconv.ParseUint(nentriesNfeaturesNlabels[1], 10, 32)
 	if err != nil {
 		return nil, fmt.Errorf("illegal nfeatures in first line")
 	}
-	nlabels, err := strconv.ParseUint(nentries_nfeatures_nlabels[2], 10, 32)
+	nlabels, err := strconv.ParseUint(nentriesNfeaturesNlabels[2], 10, 32)
 	if err != nil {
 		return nil, fmt.Errorf("illegal nlabels in first line")
 	}
@@ -349,19 +349,19 @@ func ReadTextDataset(reader io.Reader) (*Dataset, error) {
 			y = append(y, uint32(label))
 		}
 		x := make(FeatureVector, 0, len(entry))
-		for j, feature_valueStr := range entry {
-			feature_value := strings.Split(feature_valueStr, ":")
-			if len(feature_value) != 2 {
+		for j, featureValueStr := range entry {
+			featureValue := strings.Split(featureValueStr, ":")
+			if len(featureValue) != 2 {
 				return nil, fmt.Errorf("L%d: illegal #%d featureID:value pair", i+1, j+1)
 			}
-			feature, err := strconv.ParseUint(feature_value[0], 10, 32)
+			feature, err := strconv.ParseUint(featureValue[0], 10, 32)
 			if err != nil {
 				return nil, fmt.Errorf("L%d: illegal #%d feature ID", i+1, j+1)
 			}
 			if feature >= nfeatures {
 				return nil, fmt.Errorf("L%d: too large #%d feature ID (>= %d)", i+1, j+1, nfeatures)
 			}
-			value, err := strconv.ParseFloat(feature_value[1], 32)
+			value, err := strconv.ParseFloat(featureValue[1], 32)
 			if err != nil {
 				return nil, fmt.Errorf("L%d: illegal #%d feature value", i+1, j+1)
 			}
@@ -384,13 +384,13 @@ func (ds *Dataset) FeatureSubSet(features map[uint32]struct{}) *Dataset {
 		Y: LabelVectors{},
 	}
 	for i, xi := range ds.X {
-		xi_, yi_ := FeatureVector{}, ds.Y[i]
+		xinew := FeatureVector{}
 		for _, xipair := range xi {
 			if _, ok := features[xipair.Key]; ok {
-				xi_ = append(xi_, xipair)
+				xinew = append(xinew, xipair)
 			}
 		}
-		subds.X, subds.Y = append(subds.X, xi_), append(subds.Y, yi_)
+		subds.X, subds.Y = append(subds.X, xinew), append(subds.Y, ds.Y[i])
 	}
 	return subds
 }
