@@ -123,11 +123,11 @@ func (cmd *SummarizeCommand) Run() error {
 		}
 		sort.Sort(labelRanks)
 		for k := 0; k < K; k++ {
-			k_ := k
-			if k_ >= len(labelRanks) {
-				k_ = len(labelRanks) - 1
+			kmax := k
+			if kmax >= len(labelRanks) {
+				kmax = len(labelRanks) - 1
 			}
-			leastRanksSet[k] = append(leastRanksSet[k], int(labelRanks[k_].Value))
+			leastRanksSet[k] = append(leastRanksSet[k], int(labelRanks[kmax].Value))
 		}
 	}
 	for _, leastRanks := range leastRanksSet {

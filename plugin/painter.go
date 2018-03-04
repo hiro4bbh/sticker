@@ -182,12 +182,12 @@ func Painter_TopLabelSubSet(ds *sticker.Dataset, Z []sticker.KeyValues32, K uint
 		}
 		labelsTopK := sticker.RankTopK(labelFreqs, subK)
 		for _, label := range labelsTopK {
-			labelMap_ := make(map[uint32]bool, len(labelMap))
+			labelMapNew := make(map[uint32]bool, len(labelMap))
 			for l := range labelMap {
-				labelMap_[l] = true
+				labelMapNew[l] = true
 			}
-			labelMap_[label] = true
-			heap.Push(&queue, NewQueuePrioritizedByFloat32Item(labelFreqs[label], labelMap_))
+			labelMapNew[label] = true
+			heap.Push(&queue, NewQueuePrioritizedByFloat32Item(labelFreqs[label], labelMapNew))
 		}
 		if filterK < uint(len(queue)) {
 			queueOld := queue
