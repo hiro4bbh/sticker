@@ -104,9 +104,6 @@ func TestLabelNearestPredictAll(t *testing.T) {
 		},
 	}
 	model2 := goassert.New(t).SucceedNew(TrainLabelNearest(ds2, nil)).(*LabelNearest)
-	goassert.New(t, LabelVectors{
-		LabelVector{1, 3, 4, 2, 5},
-	}).Equal(model2.PredictAll(FeatureVectors{
-		FeatureVector{KeyValue32{1, 1.0}, KeyValue32{2, 1.0}, KeyValue32{3, 1.0}, KeyValue32{4, 1.0}, KeyValue32{5, 1.0}},
-	}, 5, 5, 1.0, 1.0))
+	yhat, _, _ := model2.Predict(FeatureVector{KeyValue32{1, 1.0}, KeyValue32{2, 1.0}, KeyValue32{3, 1.0}, KeyValue32{4, 1.0}, KeyValue32{5, 1.0}}, 5, 5, 1.0, 1.0)
+	goassert.New(t, LabelVector{1, 3, 4, 2, 5}).Equal(yhat)
 }

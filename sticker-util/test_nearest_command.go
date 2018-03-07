@@ -150,8 +150,9 @@ func (cmd *TestNearestCommand) Run() error {
 		reporter.Report(model.PredictAll(ds.X, reporter.MaxK(), cmd.S, float32(cmd.Alpha), float32(cmd.Beta)), opts.OutputWriter)
 	} else {
 		Yhat := make(sticker.LabelVectors, 0, ds.Size())
+		ctx := model.NewContext()
 		for i, xi := range ds.X {
-			yihat, labelHist, indexSimsTopS := model.Predict(xi, reporter.MaxK(), cmd.S, float32(cmd.Alpha), float32(cmd.Beta))
+			yihat, labelHist, indexSimsTopS := model.PredictWithContext(xi, reporter.MaxK(), cmd.S, float32(cmd.Alpha), float32(cmd.Beta), ctx)
 			Yhat = append(Yhat, yihat)
 			if uint(i)%cmd.Per == 0 {
 				if opts.DebugLogger != nil {

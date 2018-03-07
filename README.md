@@ -49,7 +49,7 @@ If `featureMap` and `labelMap` is empty string, then feature and label maps are 
 # Implemented Models
 ## `LabelNearest`: Sparse Weighted Nearest-Neighbor Method
 `LabelNearest` is _Sparse Weighted Nearest-Neighbor Method_ __(Aoshima+ 2018)__ which achieved SOTA performances on several XMLC datasets __(Bhatia+ 2016)__.
-_Recently, the model can process each data entry faster in 15.8 (AmazonCat-13K), 1.22 (Wiki10-31K), 5.50 (Delicious-200K), 16.3 (WikiLSHTC-325K), 5.16 (Amazon-670K), and 16.5 ms (Amazon-3M) on average, under the same settings of the paper (compare to the original result)._
+_Recently, the model can process each data entry faster in 15.1 (AmazonCat-13K), 1.14 (Wiki10-31K), 4.88 (Delicious-200K), 15.1 (WikiLSHTC-325K), 4.19 (Amazon-670K), and 15.5 ms (Amazon-3M) on average, under the same settings of the paper (compare to the original result)._
 
 For example, you can test this method on Amazon-3M dataset __(Bhatia+ 2016)__ as follows:
 
@@ -68,21 +68,21 @@ Almost parameters and options are same with the ones of `LabelNearest`.
 See the help of `@trainNear` and `@testNear` for details.
 
 ## Other Models
-### Implemented in Core
+### Implemented in core
 - `LabelConst`: Multi-label constant model (see [GoDoc](https://godoc.org/github.com/hiro4bbh/sticker#LabelConst))
 - `LabelOne`: One-versus-rest classifier for multi-label ranking (see [GoDoc](https://godoc.org/github.com/hiro4bbh/sticker#LabelOne))
 
-### Implemented in Plugin
+### Implemented in plugin
 - `LabelBoost`: Multi-label Boosting model (see [GoDoc](https://godoc.org/github.com/hiro4bbh/sticker/plugin#LabelBoost))
 - `LabelForest`: Variously-modified FastXML model (see [GoDoc](https://godoc.org/github.com/hiro4bbh/sticker/plugin#LabelForest))
 - `LabelNext`: Your next-generation model (you can add your own train and test commands, see [plugin/next/init.go](https://github.com/hiro4bbh/sticker/blob/master/plugin/next/init.go))
 
 # Implemented Binary Classifiers
-## in Core (recommended)
+## In core (recommended)
 - `L1Logistic_PrimalSGD`: L1-logistic regression with stochastic gradient descent (SGD) solving the primal problem (see [GoDoc](https://godoc.org/github.com/hiro4bbh/sticker#BinaryClassifierTrainer_L1Logistic_PrimalSGD))
 - `L1SVC_PrimalSGD`: L1-Support Vector Classifier with SGD solving the primal problem (see [GoDoc](https://godoc.org/github.com/hiro4bbh/sticker#BinaryClassifierTrainer_L1SVC_PrimalSGD))
 
-## in Plugin (not-recommended; for comparison only)
+## In plugin (not-recommended; for comparison only)
 - `L1SVC_DualCD`: L1-Support Vector Classifier with coordinate descent (CD) solving the dual problem (see [GoDoc](https://godoc.org/github.com/hiro4bbh/sticker/plugin#BinaryClassifierTrainer_L1SVC_DualCD))
 - `L2SVC_PrimalCD`: L2-Support Vector Classifier with CD solving the primal problem (see [GoDoc](https://godoc.org/github.com/hiro4bbh/sticker/plugin#BinaryClassifierTrainer_L2SVC_PrimalCD))
 

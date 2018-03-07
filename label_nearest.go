@@ -13,6 +13,10 @@ type SimCountPair struct {
 	Count uint32
 }
 
+// LabelNearestContext is a context used in inference.
+// This is not protected by any mutex, so this should not be accessed by multiple goroutines.
+type LabelNearestContext []SimCountPair
+
 // LabelNearest is the sparse weighted nearest neighborhood.
 // Sparse means in the following 3 reasons:
 //   (i) The similarity used in constructing the nearest neighborhood defined by the inner-product on the features activated in the given entry.
@@ -22,7 +26,7 @@ type SimCountPair struct {
 // LabelNearest is only the optimized data structure of the training dataset for searching nearest neighborhood.
 type LabelNearest struct {
 	// NfeaturesList is the slice of the number of features contained in each training data entry.
-	NfeaturesList []float32
+	NfeaturesList []uint32
 	// FeatureIndexList is the map from the feature to the feature index.
 	// The feature index contains the list of the pair of the entry index and the corresponding feature value.
 	// The feature vector for the each entry is normalized for computing cos similarity effectively in the inference.
@@ -35,10 +39,10 @@ type LabelNearest struct {
 //
 // Currently, this function returns no error.
 func TrainLabelNearest(ds *Dataset, debug *log.Logger) (*LabelNearest, error) {
-	nfeaturesList := make([]float32, ds.Size())
+	nfeaturesList := make([]uint32, ds.Size())
 	lenX := make([]float32, ds.Size())
 	for i, xi := range ds.X {
-		nfeaturesList[i] = float32(len(xi))
+		nfeaturesList[i] = uint32(len(xi))
 		l := float32(0.0)
 		for _, xipair := range xi {
 			l += xipair.Value * xipair.Value
@@ -75,7 +79,7 @@ func TrainLabelNearest(ds *Dataset, debug *log.Logger) (*LabelNearest, error) {
 //
 // This function returns an error in decoding.
 func DecodeLabelNearestWithGobDecoder(model *LabelNearest, decoder *gob.Decoder) error {
-	model.NfeaturesList = []float32{}
+	model.NfeaturesList = []uint32{}
 	if err := decoder.Decode(&model.NfeaturesList); err != nil {
 		return fmt.Errorf("DecodeLabelNearest: NfeaturesList: %s", err)
 	}
@@ -161,7 +165,12 @@ func (model *LabelNearest) GobEncode() ([]byte, error) {
 // FindNearests returns the S nearest entries with each similarity for the given entry.
 // See Predict for hyper-parameter details.
 func (model *LabelNearest) FindNearests(x FeatureVector, S uint, beta float32) KeyValues32 {
-	simCounts := make([]SimCountPair, len(model.LabelVectors))
+	return model.FindNearestsWithContext(x, S, beta, model.NewContext())
+}
+
+// FindNearestsWithContext is FindNearests with the specified LabelNearestContext.
+func (model *LabelNearest) FindNearestsWithContext(x FeatureVector, S uint, beta float32, ctx LabelNearestContext) KeyValues32 {
+	simCounts := []SimCountPair(ctx)
 	for _, xpair := range x {
 		featureIndex := model.FeatureIndexList[xpair.Key]
 		for _, indexValue := range featureIndex {
@@ -171,36 +180,44 @@ func (model *LabelNearest) FindNearests(x FeatureVector, S uint, beta float32) K
 	}
 	indexSimsTopS := make(KeyValues32, 0, S)
 	for i, simCount := range simCounts {
-		if sim, count := simCount.Sim, simCount.Count; sim > 0.0 {
-			// For efficiency, call Pow32 as short-cut style.
-			jaccard := float32(count) / (float32(len(x)) + model.NfeaturesList[i] - float32(count))
-			if beta == 0 {
-			} else if beta == 1 {
-				sim *= jaccard
-			} else {
-				sim *= Pow32(jaccard, beta)
-			}
-			if len(indexSimsTopS) == 0 {
-				indexSimsTopS = append(indexSimsTopS, KeyValue32{uint32(i), sim})
-			} else if indexSimsTopS[len(indexSimsTopS)-1].Value > sim {
-				if len(indexSimsTopS) < cap(indexSimsTopS) {
-					indexSimsTopS = append(indexSimsTopS, KeyValue32{uint32(i), sim})
+		if sim, count := simCount.Sim, simCount.Count; count > 0 {
+			if sim > 0.0 {
+				// For efficiency, call Pow32 as short-cut style.
+				jaccard := float32(count) / float32(uint32(len(x)) + model.NfeaturesList[i] - count)
+				if beta == 0 {
+				} else if beta == 1 {
+					sim *= jaccard
+				} else {
+					sim *= Pow32(jaccard, beta)
 				}
-			} else {
-				for rank := 0; rank < len(indexSimsTopS); rank++ {
-					if sim >= indexSimsTopS[rank].Value {
-						if len(indexSimsTopS) < cap(indexSimsTopS) {
-							indexSimsTopS = append(indexSimsTopS, KeyValue32{0, 0})
+				if len(indexSimsTopS) == 0 {
+					indexSimsTopS = append(indexSimsTopS, KeyValue32{uint32(i), sim})
+				} else if indexSimsTopS[len(indexSimsTopS)-1].Value > sim {
+					if len(indexSimsTopS) < cap(indexSimsTopS) {
+						indexSimsTopS = append(indexSimsTopS, KeyValue32{uint32(i), sim})
+					}
+				} else {
+					for rank := 0; rank < len(indexSimsTopS); rank++ {
+						if sim >= indexSimsTopS[rank].Value {
+							if len(indexSimsTopS) < cap(indexSimsTopS) {
+								indexSimsTopS = append(indexSimsTopS, KeyValue32{0, 0})
+							}
+							copy(indexSimsTopS[rank+1:], indexSimsTopS[rank:])
+							indexSimsTopS[rank] = KeyValue32{uint32(i), sim}
+							break
 						}
-						copy(indexSimsTopS[rank+1:], indexSimsTopS[rank:])
-						indexSimsTopS[rank] = KeyValue32{uint32(i), sim}
-						break
 					}
 				}
 			}
+			simCounts[i] = SimCountPair{0.0, 0}
 		}
 	}
 	return indexSimsTopS
+}
+
+// NewContext returns a new context for some inference memory.
+func (model *LabelNearest) NewContext() LabelNearestContext {
+	return make([]SimCountPair, len(model.LabelVectors))
 }
 
 // Predict returns the results for the given data entry x with the sparse S-nearest neighborhood.
@@ -209,7 +226,12 @@ func (model *LabelNearest) FindNearests(x FeatureVector, S uint, beta float32) K
 // alpha is the smoothing parameter for weighting the votes by each neighbor.
 // beta is the smoothing parameter for balancing the Jaccard similarity and the cosine similarity.
 func (model *LabelNearest) Predict(x FeatureVector, K, S uint, alpha, beta float32) (LabelVector, map[uint32]float32, KeyValues32) {
-	indexSimsTopS := model.FindNearests(x, S, beta)
+	return model.PredictWithContext(x, K, S, alpha, beta, model.NewContext())
+}
+
+// PredictWithContext is Predict with the specified LabelNearestContext.
+func (model *LabelNearest) PredictWithContext(x FeatureVector, K, S uint, alpha, beta float32, ctx LabelNearestContext) (LabelVector, map[uint32]float32, KeyValues32) {
+	indexSimsTopS := model.FindNearestsWithContext(x, S, beta, ctx)
 	labelHist := make(map[uint32]float32)
 	xlen := float32(0.0)
 	for _, xpair := range x {
@@ -229,8 +251,9 @@ func (model *LabelNearest) Predict(x FeatureVector, K, S uint, alpha, beta float
 // See Predict for hyper-parameter details.
 func (model *LabelNearest) PredictAll(X FeatureVectors, K, S uint, alpha, beta float32) LabelVectors {
 	Yhat := make(LabelVectors, 0, len(X))
+	ctx := model.NewContext()
 	for _, xi := range X {
-		yihat, _, _ := model.Predict(xi, K, S, alpha, beta)
+		yihat, _, _ := model.PredictWithContext(xi, K, S, alpha, beta, ctx)
 		Yhat = append(Yhat, yihat)
 	}
 	return Yhat
