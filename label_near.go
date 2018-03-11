@@ -133,33 +133,13 @@ func (model *LabelNear) GobEncode() ([]byte, error) {
 // See Predict for hyper-parameter details.
 func (model *LabelNear) FindNears(x FeatureVector, c, S uint, beta float32) KeyValues32 {
 	indexSimsTopS := make(KeyValues32, 0, S)
-	nears := model.Hashing.FindNears(x)
-	// Sieve out the top-(cS) entries.
-	nearsList := make(KeyCounts32, 0, c*S)
+	nears := KeyCounts32(model.Hashing.FindNears(x))
+	nears = nears.SortLargestCountsWithHeap(c * S)
 	for _, nearPair := range nears {
-		if protoidx, count := nearPair.Key, nearPair.Count; count > 0 {
-			if len(nearsList) == 0 {
-				nearsList = append(nearsList, KeyCount32{uint32(protoidx), count})
-			} else if nearsList[len(nearsList)-1].Count > count {
-				if len(nearsList) < cap(nearsList) {
-					nearsList = append(nearsList, KeyCount32{uint32(protoidx), count})
-				}
-			} else {
-				for rank := 0; rank < len(nearsList); rank++ {
-					if count > nearsList[rank].Count {
-						if len(nearsList) < cap(nearsList) {
-							nearsList = append(nearsList, KeyCount32{0, 0})
-						}
-						copy(nearsList[rank+1:], nearsList[rank:])
-						nearsList[rank] = KeyCount32{uint32(protoidx), count}
-						break
-					}
-				}
-			}
+		protoidx, count := nearPair.Key, nearPair.Count
+		if count == 0 {
+			break
 		}
-	}
-	for _, nearPair := range nearsList {
-		protoidx := nearPair.Key
 		xp := model.Dataset.X[protoidx]
 		if sim, count := DotCount(x, xp); sim > 0.0 {
 			// For efficiency, call Pow32 as short-cut style.

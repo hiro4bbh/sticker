@@ -68,6 +68,38 @@ func TestKeyCountMap32(t *testing.T) {
 	goassert.New(t, KeyCount32{0, 0}).Equal(m.Get(63))
 }
 
+func TestKeyCounts32ExtractLargestCountsByInsert(t *testing.T) {
+	// The keys are ignored.
+	kcs := KeyCounts32{
+		KeyCount32{0, 4}, KeyCount32{0, 3}, KeyCount32{0, 1}, KeyCount32{0, 5}, KeyCount32{0, 2},
+	}
+	expected := KeyCounts32{
+		KeyCount32{0, 5}, KeyCount32{0, 4}, KeyCount32{0, 3}, KeyCount32{0, 2}, KeyCount32{0, 1},
+	}
+	goassert.New(t, expected).Equal(kcs.ExtractLargestCountsByInsert(5))
+	goassert.New(t, expected[:3]).Equal(kcs.ExtractLargestCountsByInsert(3))
+	goassert.New(t, expected).Equal(kcs.ExtractLargestCountsByInsert(10))
+}
+
+func TestKeyCounts32SortLargestCountsWithHeap(t *testing.T) {
+	clone := func(kcs KeyCounts32) KeyCounts32 {
+		kcs2 := make(KeyCounts32, len(kcs))
+		copy(kcs2, kcs)
+		return kcs2
+	}
+	// The keys are ignored.
+	kcs := KeyCounts32{
+		KeyCount32{0, 4}, KeyCount32{0, 3}, KeyCount32{0, 1}, KeyCount32{0, 5}, KeyCount32{0, 2},
+	}
+	expected := KeyCounts32{
+		KeyCount32{0, 5}, KeyCount32{0, 4}, KeyCount32{0, 3}, KeyCount32{0, 2}, KeyCount32{0, 1},
+	}
+	goassert.New(t, expected).Equal(clone(kcs).SortLargestCountsWithHeap(5))
+	goassert.New(t, expected[:3]).Equal(clone(kcs).SortLargestCountsWithHeap(3))
+	goassert.New(t, expected[:4]).Equal(clone(kcs).SortLargestCountsWithHeap(4))
+	goassert.New(t, expected).Equal(clone(kcs).SortLargestCountsWithHeap(10))
+}
+
 func TestKeyValues32OrderedByKey(t *testing.T) {
 	data := KeyValues32OrderedByKey(KeyValues32{
 		KeyValue32{4, 2.0}, KeyValue32{1, 1.0}, KeyValue32{1, 2.0}, KeyValue32{2, 3.0}, KeyValue32{3, 3.0},
@@ -259,12 +291,36 @@ func BenchmarkAvgTotalVariationAmongSparseVectors(b *testing.B) {
 	}
 }
 
+func BenchmarkKeyCounts32ExtractLargestCountsByInsert(b *testing.B) {
+	rng := rand.New(rand.NewSource(0))
+	for t := 0; t < b.N; t++ {
+		// The keys are ignored.
+		kcs := make(KeyCounts32, 64*4096)
+		for i := 0; i < len(kcs)/2; i++ {
+			kcs[rng.Intn(len(kcs))].Count = rng.Uint32()
+		}
+		kcs.ExtractLargestCountsByInsert(2 * 75)
+	}
+}
+
+func BenchmarkKeyCounts32SortLargestCountsWithHeap(b *testing.B) {
+	rng := rand.New(rand.NewSource(0))
+	for t := 0; t < b.N; t++ {
+		// The keys are ignored.
+		kcs := make(KeyCounts32, 64*4096)
+		for i := 0; i < len(kcs)/2; i++ {
+			kcs[rng.Intn(len(kcs))].Count = rng.Uint32()
+		}
+		kcs.SortLargestCountsWithHeap(2 * 75)
+	}
+}
+
 func BenchmarkKeyCountMap32(b *testing.B) {
 	rng := rand.New(rand.NewSource(0))
 	for t := 0; t < b.N; t++ {
-		m := NewKeyCountMap32(64*1024)
+		m := NewKeyCountMap32(64 * 1024)
 		for i := 0; i < len(m)/2; i++ {
-			m.Inc(uint32(rng.Intn(len(m))))
+			m.Inc(rng.Uint32())
 		}
 	}
 }

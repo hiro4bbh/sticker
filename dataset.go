@@ -130,6 +130,122 @@ type KeyCount32 struct {
 // KeyCounts32 is the slice of KeyCount32.
 type KeyCounts32 []KeyCount32
 
+// ExtractLargestCountsByInsert returns the only K largest entries.
+func (kcs KeyCounts32) ExtractLargestCountsByInsert(K uint) KeyCounts32 {
+	if K > uint(len(kcs)) {
+		K = uint(len(kcs))
+	}
+	kcs2 := make(KeyCounts32, 0, K)
+	for _, keyCount := range kcs {
+		if count := keyCount.Count; count > 0 {
+			if len(kcs2) == 0 {
+				kcs2 = append(kcs2, keyCount)
+			} else if kcs2[len(kcs2)-1].Count > count {
+				if len(kcs2) < cap(kcs2) {
+					kcs2 = append(kcs2, keyCount)
+				}
+			} else {
+				for rank := 0; rank < len(kcs2); rank++ {
+					if count > kcs2[rank].Count {
+						if len(kcs2) < cap(kcs2) {
+							kcs2 = append(kcs2, KeyCount32{0, 0})
+						}
+						copy(kcs2[rank+1:], kcs2[rank:])
+						kcs2[rank] = keyCount
+						break
+					}
+				}
+			}
+		}
+	}
+	return kcs2
+}
+
+// SortLargestCountsWithHeap sorts the only K largest entries at the first as maintaining the heap, and returns the shrinked slice to the self.
+func (kcs KeyCounts32) SortLargestCountsWithHeap(K uint) KeyCounts32 {
+	// This implementation comes from http://web.archive.org/web/20140807181610/http://fallabs.com/blog-ja/promenade.cgi?id=104.
+	// Strategy:
+	//   Basically, this is an in-place heap sort.
+	//   Retain the heap at the first whose size is at most K for efficiently sorting the K largest counts.
+	if K > uint(len(kcs)) {
+		K = uint(len(kcs))
+	}
+	// First, the only first entry is automatically in the heap.
+	cur := 1
+	// The first K entries are inserted into the heap.
+	// Any entry in the heap satisfies that the entry is "NOT LARGER" than any descendants of it.
+	// The order in the heap are reversed at the third step.
+	// The heap structure is retained as follows:
+	//   [0] -> [1] -> [3] -> ...
+	//              -> [4] -> ...
+	//       -> [2] -> [5] -> ...
+	//              -> [6] -> ...
+	// Hence, prev(k) = (k - 1)/2, left(k) = 2*k + 1, and right(k) = 2*k + 2.
+	for ; cur < int(K); cur++ {
+		// Insert the cur-th entry into the heap.
+		cidx := cur
+		for cidx > 0 {
+			pidx := (cidx - 1) / 2 // prev(cidx)
+			if !(kcs[pidx].Count > kcs[cidx].Count) {
+				break
+			}
+			// Swap the current entry with the parent one, because the current one is smaller.
+			kcs[cidx], kcs[pidx] = kcs[pidx], kcs[cidx]
+			// Perform this recursively at the parent entry.
+			cidx = pidx
+		}
+	}
+	// Second, the remain entries are inserted into the heap as keeping the heap size is k.
+	for cur < len(kcs) {
+		// Insert the current entry if it is larger than the smallest one in the heap.
+		if kcs[cur].Count > kcs[0].Count {
+			// Procedure A: Insert the current entry into the size K heap.
+			// Swap the current entry and the smallest one in the heap.
+			kcs[0], kcs[cur] = kcs[cur], kcs[0]
+			// Insert the current entry in the heap.
+			pidx, bot := 0, int(K)/2
+			for pidx < bot {
+				// Take the smaller child as the current entry.
+				cidx := 2*pidx + 1 // left(cidx)
+				if cidx < int(K)-1 && kcs[cidx].Count > kcs[cidx+1].Count {
+					cidx++
+				}
+				if kcs[cidx].Count > kcs[pidx].Count {
+					break
+				}
+				// Swap the current entry with the selected child, because the current one is larger.
+				kcs[pidx], kcs[cidx] = kcs[cidx], kcs[pidx]
+				// Perform this recursively at the child entry.
+				pidx = cidx
+			}
+		}
+		cur++
+	}
+	// Third, the entries in the heap are reversed.
+	// This is achieved by shrinking the heap one by one:
+	//   Taking the largest entry as the current one, insert it to the heap.
+	// Hence, the largest entry is being selected as the current one as pushing down the smaller entries.
+	cur = int(K) - 1
+	for cur > 0 {
+		// Apply procedure A in the size cur heap.
+		kcs[0], kcs[cur] = kcs[cur], kcs[0]
+		pidx, bot := 0, cur/2
+		for pidx < bot {
+			cidx := 2*pidx + 1
+			if cidx < cur-1 && kcs[cidx].Count > kcs[cidx+1].Count {
+				cidx++
+			}
+			if kcs[cidx].Count > kcs[pidx].Count {
+				break
+			}
+			kcs[pidx], kcs[cidx] = kcs[cidx], kcs[pidx]
+			pidx = cidx
+		}
+		cur--
+	}
+	return kcs[:K]
+}
+
 // KeyCountMap32 is the faster map of KeyCount32s.
 // This cannot has entries with value 0.
 //

@@ -183,7 +183,7 @@ func (model *LabelNearest) FindNearestsWithContext(x FeatureVector, S uint, beta
 		if sim, count := simCount.Sim, simCount.Count; count > 0 {
 			if sim > 0.0 {
 				// For efficiency, call Pow32 as short-cut style.
-				jaccard := float32(count) / float32(uint32(len(x)) + model.NfeaturesList[i] - count)
+				jaccard := float32(count) / float32(uint32(len(x))+model.NfeaturesList[i]-count)
 				if beta == 0 {
 				} else if beta == 1 {
 					sim *= jaccard
