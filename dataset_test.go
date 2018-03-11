@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
+	"math/rand"
 	"sort"
 	"strings"
 	"testing"
@@ -255,5 +256,15 @@ func BenchmarkAvgTotalVariationAmongSparseVectors(b *testing.B) {
 	b.ResetTimer()
 	for t := 0; t < b.N; t++ {
 		AvgTotalVariationAmongSparseVectors(svs)
+	}
+}
+
+func BenchmarkKeyCountMap32(b *testing.B) {
+	rng := rand.New(rand.NewSource(0))
+	for t := 0; t < b.N; t++ {
+		m := NewKeyCountMap32(64*1024)
+		for i := 0; i < len(m)/2; i++ {
+			m.Inc(uint32(rng.Intn(len(m))))
+		}
 	}
 }
