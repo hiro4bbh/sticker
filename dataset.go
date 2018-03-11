@@ -161,7 +161,7 @@ func (kcs KeyCounts32) ExtractLargestCountsByInsert(K uint) KeyCounts32 {
 	return kcs2
 }
 
-// SortLargestCountsWithHeap sorts the only K largest entries at the first as maintaining the heap, and returns the shrinked slice to the self.
+// SortLargestCountsWithHeap sorts the only K largest entries at the first as maintaining the heap, and returns the shrunk slice to the self.
 func (kcs KeyCounts32) SortLargestCountsWithHeap(K uint) KeyCounts32 {
 	// This implementation comes from http://web.archive.org/web/20140807181610/http://fallabs.com/blog-ja/promenade.cgi?id=104.
 	// Strategy:
