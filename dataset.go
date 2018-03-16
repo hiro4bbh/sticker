@@ -117,9 +117,14 @@ func SparsifyVector(v []float32) SparseVector {
 }
 
 // HashUint32 returns the hashed value of the given uint32 x.
-// This is a simple universal hash.
+// This comes from MurmurHash3 fmix32 (https://github.com/aappleby/smhasher/blob/master/src/MurmurHash3.cpp).
 func HashUint32(x uint32) uint32 {
-	return x * 2654435761
+	h := uint64(x + 1)
+	h ^= h >> 16
+	h = (h * 0x85ebca6b) & 0xffffffff
+	h ^= h >> 13
+	h = (h * 0xc2b2ae35) & 0xffffffff
+	return uint32(h ^ (h >> 16))
 }
 
 // KeyCount32 is the pair of uint32 feature key and its uint32 value.
