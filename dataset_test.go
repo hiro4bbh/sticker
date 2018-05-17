@@ -324,3 +324,13 @@ func BenchmarkKeyCountMap32(b *testing.B) {
 		}
 	}
 }
+
+func BenchmarkMapUint32Uint32(b *testing.B) {
+	rng := rand.New(rand.NewSource(0))
+	for t := 0; t < b.N; t++ {
+		m := make(map[uint32]uint32)
+		for i := 0; i < 64*1024/2; i++ {
+			m[rng.Uint32()] += 1
+		}
+	}
+}
